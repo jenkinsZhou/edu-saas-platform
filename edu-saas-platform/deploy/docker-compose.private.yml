@@ -1,0 +1,120 @@
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-edu_saas}
+      TZ: Asia/Shanghai
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_0900_ai_ci
+      - --max-connections=${MYSQL_MAX_CONNECTIONS:-500}
+      - --innodb-buffer-pool-size=${MYSQL_BUFFER_POOL_SIZE:-512M}
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./backup:/backup
+    ports:
+      - "${MYSQL_BIND_IP:-127.0.0.1}:${MYSQL_PORT:-3306}:3306"
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7.4-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    volumes:
+      - redis-data:/data
+    ports:
+      - "${REDIS_BIND_IP:-127.0.0.1}:${REDIS_PORT:-6379}:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.api
+    restart: unless-stopped
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      SPRING_PROFILES_ACTIVE: private
+      DB_URL: jdbc:mysql://mysql:3306/${MYSQL_DATABASE:-edu_saas}?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+      DB_USERNAME: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_ACCESS_TOKEN_MINUTES: ${JWT_ACCESS_TOKEN_MINUTES:-240}
+      JWT_REFRESH_TOKEN_DAYS: ${JWT_REFRESH_TOKEN_DAYS:-14}
+      PAYMENT_CALLBACK_SECRET: ${PAYMENT_CALLBACK_SECRET}
+      DB_POOL_MAX: ${DB_POOL_MAX:-30}
+      TOMCAT_MAX_THREADS: ${TOMCAT_MAX_THREADS:-300}
+      SLOW_REQUEST_THRESHOLD_MS: ${SLOW_REQUEST_THRESHOLD_MS:-1500}
+      ACCESS_LOG_ENABLED: ${ACCESS_LOG_ENABLED:-true}
+      PAYMENT_COMPENSATION_ENABLED: ${PAYMENT_COMPENSATION_ENABLED:-true}
+      PAYMENT_COMPENSATION_FIXED_DELAY_MS: ${PAYMENT_COMPENSATION_FIXED_DELAY_MS:-60000}
+      PAYMENT_COMPENSATION_BATCH_SIZE: ${PAYMENT_COMPENSATION_BATCH_SIZE:-100}
+      PAYMENT_COMPENSATION_MAX_CHECK_COUNT: ${PAYMENT_COMPENSATION_MAX_CHECK_COUNT:-12}
+      STORAGE_TYPE: ${STORAGE_TYPE:-local}
+      STORAGE_LOCAL_BASE_PATH: ${STORAGE_LOCAL_BASE_PATH:-/data/files}
+      PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost}
+      DEFAULT_ORGANIZATION_CODE: ${DEFAULT_ORGANIZATION_CODE:-demo}
+      ORGANIZATION_BASE_DOMAIN: ${ORGANIZATION_BASE_DOMAIN:-}
+    volumes:
+      - app-files:/data/files
+    ports:
+      - "${API_BIND_IP:-127.0.0.1}:${API_PORT:-8080}:8080"
+
+  web:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.web
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${WEB_BIND_IP:-0.0.0.0}:${WEB_PORT:-80}:80"
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    restart: unless-stopped
+    depends_on:
+      - api
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=${PROMETHEUS_RETENTION:-15d}
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    ports:
+      - "${PROMETHEUS_BIND_IP:-127.0.0.1}:${PROMETHEUS_PORT:-9090}:9090"
+
+  grafana:
+    image: grafana/grafana:11.3.0
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - grafana-data:/var/lib/grafana
+    ports:
+      - "${GRAFANA_BIND_IP:-127.0.0.1}:${GRAFANA_PORT:-3000}:3000"
+
+volumes:
+  mysql-data:
+  redis-data:
+  app-files:
+  prometheus-data:
+  grafana-data:

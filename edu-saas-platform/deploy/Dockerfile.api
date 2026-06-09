@@ -1,0 +1,15 @@
+FROM maven:3.9.9-eclipse-temurin-21 AS build
+
+WORKDIR /workspace
+COPY backend ./backend
+RUN cd backend && mvn -q -pl edu-api -am package -DskipTests
+
+FROM eclipse-temurin:21-jre
+
+WORKDIR /app
+COPY --from=build /workspace/backend/edu-api/target/edu-api-0.1.0-SNAPSHOT.jar /app/edu-api.jar
+
+ENV SPRING_PROFILES_ACTIVE=prod
+EXPOSE 8080
+
+ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75", "-XX:+ExitOnOutOfMemoryError", "-jar", "/app/edu-api.jar"]

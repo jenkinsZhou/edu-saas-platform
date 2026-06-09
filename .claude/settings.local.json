@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs -I {} bash -c 'echo \"=== {} ===\" && grep \"CREATE TABLE\" {} | wc -l')",
+      "Bash(git add *)"
+    ]
+  }
+}

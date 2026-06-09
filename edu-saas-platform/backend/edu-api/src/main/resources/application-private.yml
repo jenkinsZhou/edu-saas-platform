@@ -1,0 +1,80 @@
+server:
+  port: ${SERVER_PORT:8080}
+  shutdown: graceful
+  tomcat:
+    threads:
+      max: ${TOMCAT_MAX_THREADS:300}
+      min-spare: ${TOMCAT_MIN_SPARE_THREADS:20}
+    accept-count: ${TOMCAT_ACCEPT_COUNT:300}
+    max-connections: ${TOMCAT_MAX_CONNECTIONS:10000}
+    connection-timeout: ${TOMCAT_CONNECTION_TIMEOUT:20s}
+
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      pool-name: EduSaasHikari
+      maximum-pool-size: ${DB_POOL_MAX:30}
+      minimum-idle: ${DB_POOL_MIN_IDLE:5}
+      connection-timeout: ${DB_CONNECTION_TIMEOUT_MS:3000}
+      validation-timeout: ${DB_VALIDATION_TIMEOUT_MS:2000}
+      idle-timeout: ${DB_IDLE_TIMEOUT_MS:600000}
+      max-lifetime: ${DB_MAX_LIFETIME_MS:1800000}
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    baseline-version: 1
+    locations: classpath:db/migration
+    validate-on-migrate: true
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+  metrics:
+    tags:
+      application: ${spring.application.name:edu-api}
+      deployment: private
+
+edu:
+  deployment:
+    mode: private
+    public-base-url: ${PUBLIC_BASE_URL:http://localhost}
+  organization:
+    default-code: ${DEFAULT_ORGANIZATION_CODE:demo}
+    base-domain: ${ORGANIZATION_BASE_DOMAIN:}
+  observability:
+    slow-request-threshold-ms: ${SLOW_REQUEST_THRESHOLD_MS:1500}
+    access-log-enabled: ${ACCESS_LOG_ENABLED:true}
+  storage:
+    type: ${STORAGE_TYPE:local}
+    local:
+      base-path: ${STORAGE_LOCAL_BASE_PATH:/data/files}
+  security:
+    jwt:
+      secret: ${JWT_SECRET}
+      access-token-minutes: ${JWT_ACCESS_TOKEN_MINUTES:240}
+      refresh-token-days: ${JWT_REFRESH_TOKEN_DAYS:14}
+  payment:
+    callback-secret: ${PAYMENT_CALLBACK_SECRET}
+    compensation:
+      enabled: ${PAYMENT_COMPENSATION_ENABLED:true}
+      fixed-delay-ms: ${PAYMENT_COMPENSATION_FIXED_DELAY_MS:60000}
+      initial-delay-ms: ${PAYMENT_COMPENSATION_INITIAL_DELAY_MS:30000}
+      batch-size: ${PAYMENT_COMPENSATION_BATCH_SIZE:100}
+      max-check-count: ${PAYMENT_COMPENSATION_MAX_CHECK_COUNT:12}

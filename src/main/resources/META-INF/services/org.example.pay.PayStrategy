@@ -1,0 +1,3 @@
+org.example.pay.AliPayImpl
+org.example.pay.WeiChatPayImpl
+org.example.pay.UnionPayStrategy

@@ -1,0 +1,43 @@
+CREATE TABLE IF NOT EXISTS order_audit_log (
+    id BIGINT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    order_id BIGINT NOT NULL,
+    event_type VARCHAR(64) NOT NULL,
+    from_status VARCHAR(32) NULL,
+    to_status VARCHAR(32) NULL,
+    amount DECIMAL(12,2) NULL,
+    detail VARCHAR(500) NULL,
+    operator_account_id BIGINT NULL,
+    operator_username VARCHAR(64) NULL,
+    request_id VARCHAR(80) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    KEY idx_order_audit_order_time (tenant_id, order_id, created_at),
+    KEY idx_order_audit_event_time (tenant_id, event_type, created_at),
+    KEY idx_order_audit_request (request_id)
+);
+
+CREATE TABLE IF NOT EXISTS payment_callback_log (
+    id BIGINT PRIMARY KEY,
+    tenant_id BIGINT NOT NULL,
+    order_id BIGINT NOT NULL,
+    payment_record_id BIGINT NULL,
+    callback_no VARCHAR(80) NOT NULL,
+    channel_code VARCHAR(64) NOT NULL,
+    channel_trade_no VARCHAR(128) NULL,
+    callback_status VARCHAR(32) NOT NULL,
+    raw_payload_json JSON NULL,
+    process_result VARCHAR(500) NULL,
+    received_at DATETIME NOT NULL,
+    processed_at DATETIME NULL,
+    operator_account_id BIGINT NULL,
+    operator_username VARCHAR(64) NULL,
+    request_id VARCHAR(80) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted TINYINT(1) NOT NULL DEFAULT 0,
+    version INT NOT NULL DEFAULT 0,
+    UNIQUE KEY uk_payment_callback_no (tenant_id, callback_no),
+    UNIQUE KEY uk_payment_callback_trade (tenant_id, channel_code, channel_trade_no),
+    KEY idx_payment_callback_order_time (tenant_id, order_id, received_at),
+    KEY idx_payment_callback_request (request_id)
+);
