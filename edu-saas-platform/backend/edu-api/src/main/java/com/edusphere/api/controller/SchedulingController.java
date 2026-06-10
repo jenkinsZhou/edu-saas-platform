@@ -42,73 +42,67 @@ public class SchedulingController {
         List<String> conflicts = new ArrayList<>();
 
         if (request.teacherId() != null) {
-            List<LessonSession> teacherLessons = lessonSessionMapper.selectList(
+            long count = lessonSessionMapper.selectCount(
                     new LambdaQueryWrapper<LessonSession>()
                             .eq(LessonSession::getTenantId, tenantId)
                             .eq(LessonSession::getTeacherId, request.teacherId())
                             .eq(LessonSession::getDeleted, false)
                             .ne(request.excludeLessonId() != null, LessonSession::getId, request.excludeLessonId())
+                            .le(LessonSession::getPlannedStartAt, request.endTime())
+                            .ge(LessonSession::getPlannedEndAt, request.startTime())
             );
-
-            for (LessonSession lesson : teacherLessons) {
-                if (isTimeConflict(lesson.getPlannedStartAt(), lesson.getPlannedEndAt(),
-                        request.startTime(), request.endTime())) {
-                    conflicts.add(String.format("教师时间冲突：已安排课程 %s ~ %s",
-                            lesson.getPlannedStartAt(), lesson.getPlannedEndAt()));
-                }
+            if (count > 0) {
+                conflicts.add("教师时间冲突：该时间段已有其他课程安排");
             }
         }
 
         if (request.classroomId() != null) {
-            List<LessonSession> classroomLessons = lessonSessionMapper.selectList(
+            long count = lessonSessionMapper.selectCount(
                     new LambdaQueryWrapper<LessonSession>()
                             .eq(LessonSession::getTenantId, tenantId)
                             .eq(LessonSession::getClassroomId, request.classroomId())
                             .eq(LessonSession::getDeleted, false)
                             .ne(request.excludeLessonId() != null, LessonSession::getId, request.excludeLessonId())
+                            .le(LessonSession::getPlannedStartAt, request.endTime())
+                            .ge(LessonSession::getPlannedEndAt, request.startTime())
             );
-
-            for (LessonSession lesson : classroomLessons) {
-                if (isTimeConflict(lesson.getPlannedStartAt(), lesson.getPlannedEndAt(),
-                        request.startTime(), request.endTime())) {
-                    conflicts.add(String.format("教室时间冲突：已被占用 %s ~ %s",
-                            lesson.getPlannedStartAt(), lesson.getPlannedEndAt()));
-                }
+            if (count > 0) {
+                conflicts.add("教室时间冲突：该时间段教室已被占用");
             }
         }
 
         if (request.classGroupId() != null) {
-            List<ClassEnrollment> enrollments = classEnrollmentMapper.selectList(
+            List<Long> studentIds = classEnrollmentMapper.selectList(
                     new LambdaQueryWrapper<ClassEnrollment>()
+                            .select(ClassEnrollment::getStudentId)
                             .eq(ClassEnrollment::getTenantId, tenantId)
                             .eq(ClassEnrollment::getClassGroupId, request.classGroupId())
                             .eq(ClassEnrollment::getEnrollStatus, "ACTIVE")
                             .eq(ClassEnrollment::getDeleted, false)
-            );
+            ).stream().map(ClassEnrollment::getStudentId).toList();
 
-            for (ClassEnrollment enrollment : enrollments) {
-                List<LessonSession> studentLessons = lessonSessionMapper.selectList(
-                        new LambdaQueryWrapper<LessonSession>()
-                                .eq(LessonSession::getTenantId, tenantId)
-                                .eq(LessonSession::getDeleted, false)
-                                .ne(request.excludeLessonId() != null, LessonSession::getId, request.excludeLessonId())
-                                .in(LessonSession::getClassGroupId,
-                                        classEnrollmentMapper.selectList(
-                                                new LambdaQueryWrapper<ClassEnrollment>()
-                                                        .eq(ClassEnrollment::getTenantId, tenantId)
-                                                        .eq(ClassEnrollment::getStudentId, enrollment.getStudentId())
-                                                        .eq(ClassEnrollment::getEnrollStatus, "ACTIVE")
-                                                        .eq(ClassEnrollment::getDeleted, false)
-                                        ).stream().map(ClassEnrollment::getClassGroupId).toList()
-                                )
-                );
+            if (!studentIds.isEmpty()) {
+                List<Long> conflictClassGroups = classEnrollmentMapper.selectList(
+                        new LambdaQueryWrapper<ClassEnrollment>()
+                                .select(ClassEnrollment::getClassGroupId)
+                                .eq(ClassEnrollment::getTenantId, tenantId)
+                                .in(ClassEnrollment::getStudentId, studentIds)
+                                .eq(ClassEnrollment::getEnrollStatus, "ACTIVE")
+                                .eq(ClassEnrollment::getDeleted, false)
+                ).stream().map(ClassEnrollment::getClassGroupId).distinct().toList();
 
-                for (LessonSession lesson : studentLessons) {
-                    if (isTimeConflict(lesson.getPlannedStartAt(), lesson.getPlannedEndAt(),
-                            request.startTime(), request.endTime())) {
-                        conflicts.add(String.format("学员时间冲突：学员ID %d 已有课程 %s ~ %s",
-                                enrollment.getStudentId(), lesson.getPlannedStartAt(), lesson.getPlannedEndAt()));
-                        break;
+                if (!conflictClassGroups.isEmpty()) {
+                    long count = lessonSessionMapper.selectCount(
+                            new LambdaQueryWrapper<LessonSession>()
+                                    .eq(LessonSession::getTenantId, tenantId)
+                                    .in(LessonSession::getClassGroupId, conflictClassGroups)
+                                    .eq(LessonSession::getDeleted, false)
+                                    .ne(request.excludeLessonId() != null, LessonSession::getId, request.excludeLessonId())
+                                    .le(LessonSession::getPlannedStartAt, request.endTime())
+                                    .ge(LessonSession::getPlannedEndAt, request.startTime())
+                    );
+                    if (count > 0) {
+                        conflicts.add("学员时间冲突：班级内有学员在该时间段已有其他课程");
                     }
                 }
             }

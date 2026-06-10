@@ -15,21 +15,35 @@ spring:
     exclude:
       - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
   datasource:
-    url: jdbc:mysql://localhost:3306/edu_saas?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    url: jdbc:mysql://localhost:3306/edu_saas?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai&useServerPrepStmts=true&cachePrepStmts=true&prepStmtCacheSize=250&prepStmtCacheSqlLimit=2048&rewriteBatchedStatements=true
     username: root
     password:
     hikari:
       pool-name: EduSaasHikari
-      maximum-pool-size: 30
-      minimum-idle: 5
+      maximum-pool-size: 50
+      minimum-idle: 10
       connection-timeout: 3000
       validation-timeout: 2000
       idle-timeout: 600000
       max-lifetime: 1800000
+      connection-test-query: SELECT 1
+      leak-detection-threshold: 60000
   data:
     redis:
       host: localhost
       port: 6379
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 50
+          max-idle: 20
+          min-idle: 5
+          max-wait: 3000ms
+  cache:
+    type: redis
+    redis:
+      time-to-live: 600000
+      cache-null-values: false
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -77,3 +91,21 @@ edu:
       initial-delay-ms: 30000
       batch-size: 100
       max-check-count: 12
+
+# MyBatis配置
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+  global-config:
+    db-config:
+      logic-delete-field: deleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# 日志配置
+logging:
+  level:
+    com.edusphere: INFO
+    com.edusphere.*.mapper: DEBUG
+  pattern:
+    console: '%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50} - %msg%n'

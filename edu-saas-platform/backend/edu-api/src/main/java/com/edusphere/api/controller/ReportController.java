@@ -60,6 +60,11 @@ public class ReportController {
         if (startDate == null) startDate = LocalDate.now().minusDays(30);
         if (endDate == null) endDate = LocalDate.now();
 
+        long daysBetween = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
+        if (daysBetween > 365) {
+            throw new BizException(400, "查询时间范围不能超过365天");
+        }
+
         String sql = """
             SELECT
                 DATE(eo.created_at) as date,
@@ -71,6 +76,7 @@ public class ReportController {
                 AND DATE(eo.created_at) BETWEEN ? AND ?
             GROUP BY DATE(eo.created_at)
             ORDER BY date DESC
+            LIMIT 365
             """;
 
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, tenantId, startDate, endDate);
@@ -145,6 +151,7 @@ public class ReportController {
             WHERE t.tenant_id = ? AND t.deleted = 0 AND t.status = 'ACTIVE'
             GROUP BY t.id, t.name
             ORDER BY total_lessons DESC
+            LIMIT 500
             """;
 
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, startDate, endDate, tenantId);
@@ -204,6 +211,7 @@ public class ReportController {
             WHERE cg.tenant_id = ? AND cg.deleted = 0
             GROUP BY cg.id, cg.name
             ORDER BY student_count DESC
+            LIMIT 200
             """;
 
         List<Map<String, Object>> results = jdbcTemplate.queryForList(sql, tenantId);
