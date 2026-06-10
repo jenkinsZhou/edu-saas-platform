@@ -360,7 +360,7 @@ public class OrderController {
         if (amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BizException(400, "退款金额必须大于 0");
         }
-        BigDecimal refundableAmount = defaultAmount(order.getPaidAmount()).subtract(defaultAmount(order.getRefundedAmount()));
+        BigDecimal refundableAmount = defaultAmount(order.getPaidAmount()).subtract(defaultAmount(order.getRefundedAmount())).setScale(2, RoundingMode.HALF_UP);
         if (amount.compareTo(refundableAmount) > 0) {
             throw new BizException(400, "退款金额不能大于可退金额");
         }
@@ -545,7 +545,7 @@ public class OrderController {
         if (Objects.equals(order.getOrderStatus(), "CANCELLED")) {
             return ApiResult.ok();
         }
-        BigDecimal netPaidAmount = defaultAmount(order.getPaidAmount()).subtract(defaultAmount(order.getRefundedAmount()));
+        BigDecimal netPaidAmount = defaultAmount(order.getPaidAmount()).subtract(defaultAmount(order.getRefundedAmount())).setScale(2, RoundingMode.HALF_UP);
         if (netPaidAmount.compareTo(BigDecimal.ZERO) > 0) {
             throw new BizException(409, "订单存在未退净收款，请先完成退款再取消");
         }
@@ -851,8 +851,8 @@ public class OrderController {
         if (paidAmount.compareTo(payableAmount) > 0) {
             throw new BizException(400, "累计收款不能大于应收金额");
         }
-        BigDecimal netPaidAmount = paidAmount.subtract(refundedAmount);
-        BigDecimal outstandingAmount = payableAmount.subtract(netPaidAmount);
+        BigDecimal netPaidAmount = paidAmount.subtract(refundedAmount).setScale(2, RoundingMode.HALF_UP);
+        BigDecimal outstandingAmount = payableAmount.subtract(netPaidAmount).setScale(2, RoundingMode.HALF_UP);
         String payStatus = netPaidAmount.compareTo(BigDecimal.ZERO) == 0
                 ? "UNPAID"
                 : outstandingAmount.compareTo(BigDecimal.ZERO) == 0 ? "PAID" : "PART_PAID";
