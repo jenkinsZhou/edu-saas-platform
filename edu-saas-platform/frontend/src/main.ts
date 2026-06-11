@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import ElementPlus from 'element-plus'
-import 'element-plus/dist/index.css'
+import Antd from 'ant-design-vue'
+import 'ant-design-vue/dist/reset.css'
 import './styles/theme.css'
 import App from './App.vue'
 import { router } from './router'
@@ -9,17 +9,17 @@ import { apiGet, isAuthenticated } from './api/http'
 import { applyTenantTheme, type TenantTheme } from './theme/applyTenantTheme'
 
 applyTenantTheme({
-  primaryColor: '#2563eb',
-  accentColor: '#16a34a',
+  primaryColor: '#1890ff',
+  accentColor: '#52c41a',
   surfaceColor: '#ffffff',
-  sidebarColor: '#111827',
-  sidebarTextColor: '#e5e7eb'
+  sidebarColor: '#001529',
+  sidebarTextColor: '#ffffff'
 })
 
 createApp(App)
   .use(createPinia())
   .use(router)
-  .use(ElementPlus)
+  .use(Antd)
   .mount('#app')
 
 if (isAuthenticated()) {
