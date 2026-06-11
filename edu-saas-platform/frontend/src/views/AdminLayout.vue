@@ -84,7 +84,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch, h } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   MenuFoldOutlined,
@@ -159,7 +159,7 @@ const menuItems = computed(() => {
       key: menu.path,
       icon: () => {
         const Icon = menuIcons[menu.path]
-        return Icon ? <Icon /> : null
+        return Icon ? h(Icon) : null
       },
       label: menu.name
     }))
