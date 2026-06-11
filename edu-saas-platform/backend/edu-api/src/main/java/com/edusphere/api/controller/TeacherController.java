@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.edusphere.common.api.ApiResult;
 import com.edusphere.common.api.PageResult;
+import com.edusphere.common.cache.ReliableCacheHelper;
 import com.edusphere.common.exception.BizException;
 import com.edusphere.course.domain.Teacher;
 import com.edusphere.course.mapper.TeacherMapper;
@@ -13,6 +14,8 @@ import com.edusphere.security.permission.RequirePermission;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,13 +25,16 @@ import java.util.List;
 public class TeacherController {
 
     private final TeacherMapper teacherMapper;
+    private final ReliableCacheHelper cacheHelper;
 
-    public TeacherController(TeacherMapper teacherMapper) {
+    public TeacherController(TeacherMapper teacherMapper, ReliableCacheHelper cacheHelper) {
         this.teacherMapper = teacherMapper;
+        this.cacheHelper = cacheHelper;
     }
 
     @GetMapping
     @RequirePermission("course:teacher:view")
+    @Cacheable(value = "teachers", key = "#tenantId + ':' + (#status ?: 'ALL')", unless = "#keyword != null")
     public ApiResult<PageResult<Teacher>> listTeachers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,
@@ -94,6 +100,8 @@ public class TeacherController {
         teacher.setStatus("ACTIVE");
         teacher.setCreatedBy(SecurityContext.accountId());
         teacherMapper.insert(teacher);
+
+        cacheHelper.evictWithDelay("teachers::" + tenantId, 500);
         return ApiResult.ok(teacher.getId());
     }
 
@@ -117,6 +125,8 @@ public class TeacherController {
         teacher.setTitle(request.title());
         teacher.setUpdatedBy(SecurityContext.accountId());
         teacherMapper.updateById(teacher);
+
+        cacheHelper.evictWithDelay("teachers::" + tenantId, 500);
         return ApiResult.ok();
     }
 
@@ -135,6 +145,8 @@ public class TeacherController {
         teacher.setStatus(request.status());
         teacher.setUpdatedBy(SecurityContext.accountId());
         teacherMapper.updateById(teacher);
+
+        cacheHelper.evictWithDelay("teachers::" + tenantId, 500);
         return ApiResult.ok();
     }
 
