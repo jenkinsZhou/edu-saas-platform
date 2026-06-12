@@ -9,6 +9,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.YearMonth;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -251,6 +254,64 @@ public class ReportController {
         Integer pendingApprovals = jdbcTemplate.queryForObject(pendingSql, Integer.class, tenantId);
         dashboard.put("pendingApprovals", pendingApprovals != null ? pendingApprovals : 0);
 
+        // 环比基数：上月课次与上月出勤率
+        LocalDate thisMonthStart = LocalDate.now().withDayOfMonth(1);
+        LocalDate lastMonthStart = thisMonthStart.minusMonths(1);
+        Integer lastMonthLessons = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM lesson_session WHERE tenant_id = ? AND deleted = 0 AND DATE(planned_start_at) >= ? AND DATE(planned_start_at) < ?",
+                Integer.class, tenantId, lastMonthStart, thisMonthStart);
+        dashboard.put("lastMonthLessonCount", lastMonthLessons != null ? lastMonthLessons : 0);
+
+        BigDecimal lastMonthAttendance = jdbcTemplate.queryForObject(
+                "SELECT ROUND(COUNT(CASE WHEN status = 'PRESENT' THEN 1 END) * 100.0 / NULLIF(COUNT(*), 0), 2) FROM attendance_record WHERE tenant_id = ? AND deleted = 0 AND DATE(checked_at) >= ? AND DATE(checked_at) < ?",
+                BigDecimal.class, tenantId, lastMonthStart, thisMonthStart);
+        dashboard.put("lastMonthAttendanceRate", lastMonthAttendance != null ? lastMonthAttendance : BigDecimal.ZERO);
+
+        Integer newStudentsThisMonth = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM student WHERE tenant_id = ? AND deleted = 0 AND DATE(created_at) >= ?",
+                Integer.class, tenantId, thisMonthStart);
+        dashboard.put("newStudentsThisMonth", newStudentsThisMonth != null ? newStudentsThisMonth : 0);
+
+        // 近6个月趋势：实收金额、新增学员
+        dashboard.put("revenueTrend", monthlyTrend(tenantId,
+                "SELECT DATE_FORMAT(created_at, '%Y-%m') ym, SUM(paid_amount - refunded_amount) v FROM enrollment_order WHERE tenant_id = ? AND deleted = 0 AND DATE(created_at) >= ? GROUP BY ym"));
+        dashboard.put("studentTrend", monthlyTrend(tenantId,
+                "SELECT DATE_FORMAT(created_at, '%Y-%m') ym, COUNT(*) v FROM student WHERE tenant_id = ? AND deleted = 0 AND DATE(created_at) >= ? GROUP BY ym"));
+
+        // 待办计数：待审批转班、未付款订单、30天内到期合同
+        Integer unpaidOrders = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM enrollment_order WHERE tenant_id = ? AND deleted = 0 AND pay_status = 'UNPAID'",
+                Integer.class, tenantId);
+        dashboard.put("unpaidOrders", unpaidOrders != null ? unpaidOrders : 0);
+        Integer expiringContracts = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM contract WHERE tenant_id = ? AND deleted = 0 AND status = 'ACTIVE' AND end_date BETWEEN CURDATE() AND DATE_ADD(CURDATE(), INTERVAL 30 DAY)",
+                Integer.class, tenantId);
+        dashboard.put("expiringContracts", expiringContracts != null ? expiringContracts : 0);
+
         return ApiResult.ok(dashboard);
+    }
+
+    /**
+     * 近6个月（含当月）的按月汇总，缺数据的月份补0
+     */
+    private List<Map<String, Object>> monthlyTrend(Long tenantId, String groupedSql) {
+        YearMonth current = YearMonth.now();
+        LocalDate windowStart = current.minusMonths(5).atDay(1);
+        Map<String, BigDecimal> byMonth = new LinkedHashMap<>();
+        jdbcTemplate.query(groupedSql, rs -> {
+            byMonth.put(rs.getString("ym"), rs.getBigDecimal("v"));
+        }, tenantId, windowStart);
+
+        DateTimeFormatter key = DateTimeFormatter.ofPattern("yyyy-MM");
+        List<Map<String, Object>> trend = new ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            YearMonth month = current.minusMonths(i);
+            BigDecimal value = byMonth.getOrDefault(month.format(key), BigDecimal.ZERO);
+            Map<String, Object> point = new LinkedHashMap<>();
+            point.put("month", month.getMonthValue() + "月");
+            point.put("value", value == null ? BigDecimal.ZERO : value);
+            trend.add(point);
+        }
+        return trend;
     }
 }

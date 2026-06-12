@@ -80,7 +80,7 @@
                     <a-space wrap>
                       <span class="order-no">{{ item.orderNo }}</span>
                       <a-tag :color="getOrderStatusColor(item.orderStatus)">
-                        {{ item.orderStatus }}
+                        {{ getOrderStatusLabel(item.orderStatus) }}
                       </a-tag>
                     </a-space>
                   </template>
@@ -143,68 +143,88 @@ let revenueChart: echarts.ECharts | undefined
 let studentChart: echarts.ECharts | undefined
 
 const metrics = ref({
-  studentCount: 1286,
-  lessonCount: 842,
-  attendanceRate: 93.6,
-  pendingApprovals: 18
+  studentCount: 0,
+  newStudents: 0,
+  lessonCount: 0,
+  lastMonthLessonCount: 0,
+  attendanceRate: 0,
+  lastMonthAttendanceRate: 0,
+  pendingApprovals: 0,
+  unpaidOrders: 0,
+  expiringContracts: 0
 })
 
-const metricCards = computed(() => [
-  {
-    key: 'students',
-    title: '在读学员',
-    value: metrics.value.studentCount,
-    icon: UserOutlined,
-    color: '#1e40af',
-    trend: '+12.3%',
-    trendClass: 'trend-up',
-    hint: ' 较上月'
-  },
-  {
-    key: 'lessons',
-    title: '本月课次',
-    value: metrics.value.lessonCount,
-    icon: BookOutlined,
-    color: '#16a34a',
-    trend: '+8.5%',
-    trendClass: 'trend-up',
-    hint: ' 排课消耗'
-  },
-  {
-    key: 'attendance',
-    title: '出勤率',
-    value: metrics.value.attendanceRate,
-    suffix: '%',
-    precision: 1,
-    icon: CheckCircleOutlined,
-    color: '#d97706',
-    trend: '+2.1%',
-    trendClass: 'trend-up',
-    hint: ' 稳定提升'
-  },
-  {
-    key: 'approvals',
-    title: '待处理审批',
-    value: metrics.value.pendingApprovals,
-    icon: BellOutlined,
-    color: '#dc2626',
-    trend: '需处理',
-    trendClass: 'trend-warning',
-    hint: ' 转班/退费/排课'
+function deltaTrend(current: number, previous: number, suffix = '') {
+  if (previous <= 0) {
+    return { trend: current > 0 ? '新增' : '暂无数据', trendClass: current > 0 ? 'trend-up' : 'trend-warning' }
   }
-])
+  const delta = ((current - previous) / previous) * 100
+  const sign = delta >= 0 ? '+' : ''
+  return {
+    trend: `${sign}${delta.toFixed(1)}%${suffix}`,
+    trendClass: delta >= 0 ? 'trend-up' : 'trend-warning'
+  }
+}
 
-const recentOrders = ref([
-  { orderNo: 'ORD202406110001', studentName: '张三', courseProductName: '数学提高班', totalAmount: 1200, orderStatus: '已确认' },
-  { orderNo: 'ORD202406110002', studentName: '李四', courseProductName: '英语基础班', totalAmount: 980, orderStatus: '已创建' },
-  { orderNo: 'ORD202406110003', studentName: '王五', courseProductName: '物理竞赛班', totalAmount: 2400, orderStatus: '已确认' }
-])
+const metricCards = computed(() => {
+  const lessonTrend = deltaTrend(metrics.value.lessonCount, metrics.value.lastMonthLessonCount)
+  const attendanceTrend = deltaTrend(metrics.value.attendanceRate, metrics.value.lastMonthAttendanceRate)
+  return [
+    {
+      key: 'students',
+      title: '在读学员',
+      value: metrics.value.studentCount,
+      icon: UserOutlined,
+      color: '#1e40af',
+      trend: `本月新增 ${metrics.value.newStudents}`,
+      trendClass: metrics.value.newStudents > 0 ? 'trend-up' : 'trend-warning',
+      hint: ' 名学员'
+    },
+    {
+      key: 'lessons',
+      title: '本月课次',
+      value: metrics.value.lessonCount,
+      icon: BookOutlined,
+      color: '#16a34a',
+      trend: lessonTrend.trend,
+      trendClass: lessonTrend.trendClass,
+      hint: ' 较上月'
+    },
+    {
+      key: 'attendance',
+      title: '出勤率',
+      value: metrics.value.attendanceRate,
+      suffix: '%',
+      precision: 1,
+      icon: CheckCircleOutlined,
+      color: '#d97706',
+      trend: attendanceTrend.trend,
+      trendClass: attendanceTrend.trendClass,
+      hint: ' 较上月'
+    },
+    {
+      key: 'approvals',
+      title: '待处理审批',
+      value: metrics.value.pendingApprovals,
+      icon: BellOutlined,
+      color: '#dc2626',
+      trend: metrics.value.pendingApprovals > 0 ? '需处理' : '已清零',
+      trendClass: metrics.value.pendingApprovals > 0 ? 'trend-warning' : 'trend-up',
+      hint: ' 转班审批'
+    }
+  ]
+})
 
-const todoList = ref([
-  { title: '审批转班申请', time: '2小时前', status: 'error' },
-  { title: '处理退费申请', time: '5小时前', status: 'warning' },
-  { title: '确认排课安排', time: '1天前', status: 'processing' }
-])
+const recentOrders = ref<any[]>([])
+
+const todoList = computed(() => {
+  const items = [
+    { title: `待审批转班申请 ${metrics.value.pendingApprovals} 件`, time: '来自转班流程', status: 'error', show: metrics.value.pendingApprovals > 0 },
+    { title: `未付款订单 ${metrics.value.unpaidOrders} 笔`, time: '建议跟进收款', status: 'warning', show: metrics.value.unpaidOrders > 0 },
+    { title: `30天内到期合同 ${metrics.value.expiringContracts} 份`, time: '建议提醒续费', status: 'processing', show: metrics.value.expiringContracts > 0 }
+  ].filter(item => item.show)
+  return items.length > 0 ? items : [{ title: '暂无待办事项', time: '一切正常', status: 'success' }]
+})
 
 onMounted(async () => {
   await nextTick()
@@ -226,16 +246,35 @@ async function loadData() {
     if (res) {
       metrics.value = {
         studentCount: res.activeStudents ?? 0,
+        newStudents: res.newStudentsThisMonth ?? 0,
         lessonCount: res.monthLessonCount ?? 0,
+        lastMonthLessonCount: res.lastMonthLessonCount ?? 0,
         attendanceRate: Number(res.monthAttendanceRate ?? 0),
-        pendingApprovals: res.pendingApprovals ?? 0
+        lastMonthAttendanceRate: Number(res.lastMonthAttendanceRate ?? 0),
+        pendingApprovals: res.pendingApprovals ?? 0,
+        unpaidOrders: res.unpaidOrders ?? 0,
+        expiringContracts: res.expiringContracts ?? 0
       }
+      updateCharts(res.revenueTrend ?? [], res.studentTrend ?? [])
     }
+    const orderRes = await apiGet<any>('/orders', { page: 1, pageSize: 5 })
+    recentOrders.value = orderRes.records || []
   } catch (error) {
-    message.error('加载数据失败')
+    message.error(error instanceof Error ? error.message : '加载数据失败')
   } finally {
     loading.value = false
   }
+}
+
+function updateCharts(revenueTrend: any[], studentTrend: any[]) {
+  revenueChart?.setOption({
+    xAxis: { data: revenueTrend.map(p => p.month) },
+    series: [{ data: revenueTrend.map(p => Number(p.value)) }]
+  })
+  studentChart?.setOption({
+    xAxis: { data: studentTrend.map(p => p.month) },
+    series: [{ data: studentTrend.map(p => Number(p.value)) }]
+  })
 }
 
 function initCharts() {
@@ -247,7 +286,7 @@ function initCharts() {
       tooltip: { trigger: 'axis', backgroundColor: '#0f172a', borderWidth: 0, textStyle: { color: '#fff' } },
       xAxis: {
         type: 'category',
-        data: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        data: [],
         axisTick: { show: false },
         axisLine: { lineStyle: { color: '#dbe5f4' } }
       },
@@ -256,9 +295,9 @@ function initCharts() {
         splitLine: { lineStyle: { color: '#edf2f7' } }
       },
       series: [{
-        name: '收入',
+        name: '实收金额',
         type: 'line',
-        data: [12000, 15000, 18000, 22000, 25000, 28000],
+        data: [],
         smooth: true,
         symbolSize: 7,
         lineStyle: { width: 3 },
@@ -280,18 +319,19 @@ function initCharts() {
       tooltip: { trigger: 'axis', backgroundColor: '#0f172a', borderWidth: 0, textStyle: { color: '#fff' } },
       xAxis: {
         type: 'category',
-        data: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        data: [],
         axisTick: { show: false },
         axisLine: { lineStyle: { color: '#dbe5f4' } }
       },
       yAxis: {
         type: 'value',
+        minInterval: 1,
         splitLine: { lineStyle: { color: '#edf2f7' } }
       },
       series: [{
-        name: '学员数',
+        name: '新增学员',
         type: 'bar',
-        data: [980, 1050, 1120, 1180, 1230, 1286],
+        data: [],
         barWidth: 26,
         itemStyle: { borderRadius: [6, 6, 0, 0] }
       }]
@@ -306,11 +346,22 @@ function resizeCharts() {
 
 function getOrderStatusColor(status: string) {
   const colors: Record<string, string> = {
-    '已创建': 'blue',
-    '已确认': 'green',
-    '已取消': 'red'
+    CREATED: 'blue',
+    CONFIRMED: 'green',
+    CANCELLED: 'red',
+    COMPLETED: 'cyan'
   }
   return colors[status] || 'default'
+}
+
+function getOrderStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    CREATED: '已创建',
+    CONFIRMED: '已确认',
+    CANCELLED: '已取消',
+    COMPLETED: '已完成'
+  }
+  return labels[status] || status
 }
 </script>
 
