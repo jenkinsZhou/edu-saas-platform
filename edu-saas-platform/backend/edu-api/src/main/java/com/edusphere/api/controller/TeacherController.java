@@ -14,8 +14,6 @@ import com.edusphere.security.permission.RequirePermission;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.cache.annotation.CacheEvict;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -34,7 +32,6 @@ public class TeacherController {
 
     @GetMapping
     @RequirePermission("course:teacher:view")
-    @Cacheable(value = "teachers", key = "#tenantId + ':' + (#status ?: 'ALL')", unless = "#keyword != null")
     public ApiResult<PageResult<Teacher>> listTeachers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) String status,

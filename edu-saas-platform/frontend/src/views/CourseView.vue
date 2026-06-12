@@ -30,7 +30,7 @@
           pageSize: coursePager.pageSize,
           total: coursePager.total,
           showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`
+          showTotal: (total: number) => `共 ${total} 条`
         }"
         @change="handleCourseTableChange"
       >
@@ -78,7 +78,7 @@
           pageSize: classPager.pageSize,
           total: classPager.total,
           showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`
+          showTotal: (total: number) => `共 ${total} 条`
         }"
         @change="handleClassTableChange"
       >
@@ -115,7 +115,7 @@
           pageSize: lessonPager.pageSize,
           total: lessonPager.total,
           showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`
+          showTotal: (total: number) => `共 ${total} 条`
         }"
         @change="handleLessonTableChange"
       >

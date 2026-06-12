@@ -199,3 +199,69 @@ ON DUPLICATE KEY UPDATE
     enroll_status = VALUES(enroll_status),
     enroll_date = VALUES(enroll_date),
     remark = VALUES(remark);
+
+-- 教师/教室/排课/考勤/课消/转班/通知/合同/优惠券/报表 模块权限
+INSERT INTO menu_permission (id, tenant_id, parent_id, name, type, route_path, permission_code, sort_no, created_by)
+VALUES
+    (4301, 1, 4002, '考勤打卡', 'BUTTON', NULL, 'course:attendance:create', 35, 1001),
+    (4302, 1, 4002, '教室查看', 'BUTTON', NULL, 'course:classroom:view', 36, 1001),
+    (4303, 1, 4002, '教室新增', 'BUTTON', NULL, 'course:classroom:create', 37, 1001),
+    (4304, 1, 4002, '教室编辑', 'BUTTON', NULL, 'course:classroom:update', 38, 1001),
+    (4305, 1, 4002, '课消查看', 'BUTTON', NULL, 'course:consumption:view', 39, 1001),
+    (4306, 1, 4002, '排课查看', 'BUTTON', NULL, 'course:schedule:view', 40, 1001),
+    (4307, 1, 4002, '排课新增', 'BUTTON', NULL, 'course:schedule:create', 41, 1001),
+    (4308, 1, 4002, '教师查看', 'BUTTON', NULL, 'course:teacher:view', 42, 1001),
+    (4309, 1, 4002, '教师新增', 'BUTTON', NULL, 'course:teacher:create', 43, 1001),
+    (4310, 1, 4002, '教师编辑', 'BUTTON', NULL, 'course:teacher:update', 44, 1001),
+    (4311, 1, 4002, '转班查看', 'BUTTON', NULL, 'course:transfer:view', 45, 1001),
+    (4312, 1, 4002, '转班申请', 'BUTTON', NULL, 'course:transfer:create', 46, 1001),
+    (4313, 1, 4002, '转班审批', 'BUTTON', NULL, 'course:transfer:approve', 47, 1001),
+    (4321, 1, 4005, '优惠券查看', 'BUTTON', NULL, 'marketing:coupon:view', 59, 1001),
+    (4322, 1, 4005, '优惠券新增', 'BUTTON', NULL, 'marketing:coupon:create', 60, 1001),
+    (4323, 1, 4005, '合同查看', 'BUTTON', NULL, 'order:contract:view', 61, 1001),
+    (4324, 1, 4005, '合同新增', 'BUTTON', NULL, 'order:contract:create', 62, 1001),
+    (4325, 1, 4005, '合同到期提醒', 'BUTTON', NULL, 'order:contract:notify', 63, 1001),
+    (4331, 1, 4001, '营收报表', 'BUTTON', NULL, 'report:revenue:view', 11, 1001),
+    (4332, 1, 4001, '学员报表', 'BUTTON', NULL, 'report:student:view', 12, 1001),
+    (4333, 1, 4001, '教师报表', 'BUTTON', NULL, 'report:teacher:view', 13, 1001),
+    (4334, 1, 4001, '考勤报表', 'BUTTON', NULL, 'report:attendance:view', 14, 1001),
+    (4335, 1, 4001, '课消报表', 'BUTTON', NULL, 'report:consumption:view', 15, 1001),
+    (4336, 1, 4001, '看板报表', 'BUTTON', NULL, 'report:dashboard:view', 16, 1001),
+    (4341, 1, 4003, '通知查看', 'BUTTON', NULL, 'system:notification:view', 42, 1001),
+    (4342, 1, 4003, '通知发送', 'BUTTON', NULL, 'system:notification:send', 43, 1001)
+ON DUPLICATE KEY UPDATE
+    parent_id = VALUES(parent_id),
+    name = VALUES(name),
+    type = VALUES(type),
+    permission_code = VALUES(permission_code),
+    sort_no = VALUES(sort_no);
+
+INSERT INTO role_permission (id, tenant_id, role_id, permission_id)
+VALUES
+    (6101, 1, 3001, 4301),
+    (6102, 1, 3001, 4302),
+    (6103, 1, 3001, 4303),
+    (6104, 1, 3001, 4304),
+    (6105, 1, 3001, 4305),
+    (6106, 1, 3001, 4306),
+    (6107, 1, 3001, 4307),
+    (6108, 1, 3001, 4308),
+    (6109, 1, 3001, 4309),
+    (6110, 1, 3001, 4310),
+    (6111, 1, 3001, 4311),
+    (6112, 1, 3001, 4312),
+    (6113, 1, 3001, 4313),
+    (6121, 1, 3001, 4321),
+    (6122, 1, 3001, 4322),
+    (6123, 1, 3001, 4323),
+    (6124, 1, 3001, 4324),
+    (6125, 1, 3001, 4325),
+    (6131, 1, 3001, 4331),
+    (6132, 1, 3001, 4332),
+    (6133, 1, 3001, 4333),
+    (6134, 1, 3001, 4334),
+    (6135, 1, 3001, 4335),
+    (6136, 1, 3001, 4336),
+    (6141, 1, 3001, 4341),
+    (6142, 1, 3001, 4342)
+ON DUPLICATE KEY UPDATE permission_id = VALUES(permission_id);

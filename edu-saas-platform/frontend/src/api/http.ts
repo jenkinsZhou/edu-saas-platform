@@ -103,13 +103,13 @@ export async function logout() {
   }
 }
 
-export async function apiGet<T>(url: string): Promise<T> {
+export async function apiGet<T>(url: string, params?: Record<string, unknown>): Promise<T> {
   requireAuth()
-  const response = await http.get<ApiResult<T>>(url)
+  const response = await http.get<ApiResult<T>>(url, { params })
   return unwrap(response.data)
 }
 
-export async function apiPost<T>(url: string, data: unknown): Promise<T> {
+export async function apiPost<T>(url: string, data?: unknown): Promise<T> {
   requireAuth()
   const response = await http.post<ApiResult<T>>(url, data)
   return unwrap(response.data)

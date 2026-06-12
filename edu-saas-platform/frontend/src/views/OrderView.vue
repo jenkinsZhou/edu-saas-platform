@@ -70,7 +70,7 @@
           pageSize: pager.pageSize,
           total: pager.total,
           showSizeChanger: true,
-          showTotal: (total) => `共 ${total} 条`
+          showTotal: (total: number) => `共 ${total} 条`
         }"
         @change="handleTableChange"
       >

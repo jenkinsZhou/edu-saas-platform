@@ -46,7 +46,4 @@ CREATE TABLE IF NOT EXISTS course_consumption (
     KEY idx_consumption_enrollment (tenant_id, enrollment_id, deleted)
 ) COMMENT '课时消耗记录';
 
--- 为 lesson_session 表添加教师字段（如果不存在）
-ALTER TABLE lesson_session
-    ADD COLUMN IF NOT EXISTS teacher_id BIGINT NULL COMMENT '授课教师' AFTER class_group_id,
-    ADD INDEX IF NOT EXISTS idx_lesson_teacher (tenant_id, teacher_id, deleted);
+-- lesson_session 的 teacher_id 列和教师时间索引已在 V1 baseline 中创建，此处无需变更

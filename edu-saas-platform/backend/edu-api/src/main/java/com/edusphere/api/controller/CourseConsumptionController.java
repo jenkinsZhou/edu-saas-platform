@@ -69,13 +69,15 @@ public class CourseConsumptionController {
                 ce.id as enrollment_id,
                 ce.class_group_id,
                 ce.student_id,
-                ce.total_sessions,
+                COALESCE(cp.total_lessons, 0) as total_sessions,
                 COALESCE(SUM(cc.consumed_count), 0) as consumed_sessions,
-                (ce.total_sessions - COALESCE(SUM(cc.consumed_count), 0)) as remaining_sessions
+                (COALESCE(cp.total_lessons, 0) - COALESCE(SUM(cc.consumed_count), 0)) as remaining_sessions
             FROM class_enrollment ce
+            INNER JOIN class_group cg ON cg.id = ce.class_group_id AND cg.deleted = 0
+            LEFT JOIN course_product cp ON cp.id = cg.course_product_id AND cp.deleted = 0
             LEFT JOIN course_consumption cc ON cc.enrollment_id = ce.id AND cc.deleted = 0
             WHERE ce.tenant_id = ? AND ce.student_id = ? AND ce.deleted = 0 AND ce.enroll_status = 'ACTIVE'
-            GROUP BY ce.id, ce.class_group_id, ce.student_id, ce.total_sessions
+            GROUP BY ce.id, ce.class_group_id, ce.student_id, cp.total_lessons
             """;
 
         List<Map<String, Object>> results = jdbcTemplate.query(sql,
@@ -104,13 +106,15 @@ public class CourseConsumptionController {
                 ce.id as enrollment_id,
                 ce.class_group_id,
                 ce.student_id,
-                ce.total_sessions,
+                COALESCE(cp.total_lessons, 0) as total_sessions,
                 COALESCE(SUM(cc.consumed_count), 0) as consumed_sessions,
-                (ce.total_sessions - COALESCE(SUM(cc.consumed_count), 0)) as remaining_sessions
+                (COALESCE(cp.total_lessons, 0) - COALESCE(SUM(cc.consumed_count), 0)) as remaining_sessions
             FROM class_enrollment ce
+            INNER JOIN class_group cg ON cg.id = ce.class_group_id AND cg.deleted = 0
+            LEFT JOIN course_product cp ON cp.id = cg.course_product_id AND cp.deleted = 0
             LEFT JOIN course_consumption cc ON cc.enrollment_id = ce.id AND cc.deleted = 0
             WHERE ce.tenant_id = ? AND ce.deleted = 0 AND ce.enroll_status = 'ACTIVE'
-            GROUP BY ce.id, ce.class_group_id, ce.student_id, ce.total_sessions
+            GROUP BY ce.id, ce.class_group_id, ce.student_id, cp.total_lessons
             HAVING remaining_sessions <= ? AND remaining_sessions > 0
             ORDER BY remaining_sessions ASC
             """;

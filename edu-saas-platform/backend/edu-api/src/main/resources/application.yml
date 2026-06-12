@@ -45,7 +45,8 @@ spring:
       time-to-live: 600000
       cache-null-values: false
   flyway:
-    enabled: false
+    enabled: true
+    baseline-on-migrate: true
 
 springdoc:
   swagger-ui:

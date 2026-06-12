@@ -1,10 +1,17 @@
 package com.edusphere.tenant.domain;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.edusphere.common.domain.BaseEntity;
 
 @TableName("tenant")
 public class Tenant extends BaseEntity {
+
+    /**
+     * tenant 是租户根表，自身没有 tenant_id 列，遮蔽父类字段避免 SQL 引用不存在的列
+     */
+    @TableField(exist = false)
+    private Long tenantId;
 
     private String name;
     private String code;
