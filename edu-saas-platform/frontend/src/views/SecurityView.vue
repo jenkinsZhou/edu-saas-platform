@@ -85,21 +85,60 @@
         </a-card>
       </a-col>
     </a-row>
+
+    <a-modal
+      v-model:open="roleModalOpen"
+      :title="editingRoleId ? '编辑角色' : '新增角色'"
+      :confirm-loading="roleSaving"
+      @ok="submitRole"
+    >
+      <a-form ref="roleFormRef" :model="roleForm" :rules="roleRules" layout="vertical">
+        <a-form-item label="角色名称" name="name">
+          <a-input v-model:value="roleForm.name" placeholder="请输入角色名称" />
+        </a-form-item>
+        <a-form-item label="角色编码" name="code">
+          <a-input v-model:value="roleForm.code" :disabled="Boolean(editingRoleId)" placeholder="例如：campus_manager" />
+        </a-form-item>
+        <a-form-item label="数据范围" name="dataScope">
+          <a-select v-model:value="roleForm.dataScope">
+            <a-select-option value="ALL">全部数据</a-select-option>
+            <a-select-option value="CAMPUS">本校区</a-select-option>
+            <a-select-option value="SELF">仅本人</a-select-option>
+          </a-select>
+        </a-form-item>
+      </a-form>
+    </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
-import { apiGet, apiPut } from '../api/http'
+import { apiGet, apiPost, apiPut } from '../api/http'
 
 const rolesLoading = ref(false)
 const saving = ref(false)
+const roleSaving = ref(false)
 const roles = ref<any[]>([])
 const permissionTree = ref<any[]>([])
 const selectedRole = ref<any>(null)
 const checkedPermissions = ref<number[]>([])
+const roleModalOpen = ref(false)
+const editingRoleId = ref<number>()
+const roleFormRef = ref()
+
+const roleForm = reactive({
+  name: '',
+  code: '',
+  dataScope: 'CAMPUS'
+})
+
+const roleRules = {
+  name: [{ required: true, message: '请输入角色名称' }],
+  code: [{ required: true, message: '请输入角色编码' }],
+  dataScope: [{ required: true, message: '请选择数据范围' }]
+}
 
 onMounted(() => {
   loadRoles()
@@ -153,8 +192,8 @@ function buildTree(items: any[]) {
 async function selectRole(role: any) {
   selectedRole.value = role
   try {
-    const res = await apiGet<any>(`/system/roles/${role.id}/permissions`)
-    checkedPermissions.value = res.permissionIds || []
+    const res = await apiGet<number[] | { permissionIds: number[] }>(`/system/roles/${role.id}/permissions`)
+    checkedPermissions.value = Array.isArray(res) ? res : (res.permissionIds || [])
   } catch (error) {
     message.error('加载角色权限失败')
   }
@@ -177,11 +216,51 @@ async function savePermissions() {
 }
 
 function openCreateRole() {
-  message.info('新增角色功能开发中')
+  editingRoleId.value = undefined
+  Object.assign(roleForm, {
+    name: '',
+    code: '',
+    dataScope: 'CAMPUS'
+  })
+  roleModalOpen.value = true
 }
 
 function editRole(role: any) {
-  message.info('编辑角色功能开发中')
+  editingRoleId.value = role.id
+  Object.assign(roleForm, {
+    name: role.name,
+    code: role.code,
+    dataScope: role.dataScope
+  })
+  roleModalOpen.value = true
+}
+
+async function submitRole() {
+  await roleFormRef.value?.validate?.()
+  roleSaving.value = true
+  try {
+    if (editingRoleId.value) {
+      await apiPut(`/system/roles/${editingRoleId.value}`, {
+        name: roleForm.name,
+        dataScope: roleForm.dataScope
+      })
+      message.success('角色已更新')
+    } else {
+      await apiPost('/system/roles', {
+        name: roleForm.name,
+        code: roleForm.code,
+        dataScope: roleForm.dataScope,
+        permissionIds: []
+      })
+      message.success('角色已创建')
+    }
+    roleModalOpen.value = false
+    await loadRoles()
+  } catch (error) {
+    message.error(error instanceof Error ? error.message : '保存角色失败')
+  } finally {
+    roleSaving.value = false
+  }
 }
 
 function getDataScopeText(scope: string) {

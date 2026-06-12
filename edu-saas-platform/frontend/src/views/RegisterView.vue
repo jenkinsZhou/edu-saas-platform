@@ -4,7 +4,9 @@
       <a-card class="register-card" :bordered="false">
         <div class="register-header">
           <div class="logo">
-            <div class="logo-icon">📚</div>
+            <div class="logo-icon">
+              <BookOutlined />
+            </div>
             <div class="logo-text">
               <h1>EduSphere</h1>
               <p>新机构入驻</p>
@@ -125,7 +127,7 @@ import { reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
 import type { Rule } from 'ant-design-vue/es/form'
-import { UserOutlined, LockOutlined, BankOutlined, HomeOutlined } from '@ant-design/icons-vue'
+import { UserOutlined, LockOutlined, BankOutlined, HomeOutlined, BookOutlined } from '@ant-design/icons-vue'
 import { apiPublicPost } from '../api/http'
 
 const router = useRouter()
@@ -202,7 +204,9 @@ async function handleSubmit() {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background:
+    linear-gradient(135deg, rgba(15, 27, 61, 0.96), rgba(30, 64, 175, 0.9)),
+    #0f1b3d;
   padding: 32px 16px;
 }
 
@@ -212,8 +216,13 @@ async function handleSubmit() {
 }
 
 .register-card {
-  border-radius: 16px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(219, 229, 244, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+}
+
+.register-card :deep(.ant-card-body) {
+  padding: 30px;
 }
 
 .register-header {
@@ -228,17 +237,22 @@ async function handleSubmit() {
 }
 
 .logo-icon {
-  font-size: 44px;
+  display: inline-flex;
+  width: 48px;
+  height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--edu-primary), var(--edu-accent));
+  color: #ffffff;
+  font-size: 24px;
 }
 
 .logo-text h1 {
   margin: 0;
   font-size: 30px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-weight: 850;
+  color: var(--edu-text);
 }
 
 .logo-text p {
@@ -253,21 +267,22 @@ async function handleSubmit() {
 }
 
 .plan-card {
-  border: 2px solid #e5e7eb;
-  border-radius: 12px;
+  border: 1px solid var(--edu-border);
+  border-radius: 8px;
   padding: 12px 8px;
   text-align: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
 }
 
 .plan-card:hover {
-  border-color: #a5b4fc;
+  border-color: var(--edu-secondary);
+  box-shadow: 0 8px 20px rgba(30, 64, 175, 0.12);
 }
 
 .plan-card.active {
-  border-color: #667eea;
-  background: #eef2ff;
+  border-color: var(--edu-primary);
+  background: #eff6ff;
 }
 
 .plan-name {
@@ -276,7 +291,7 @@ async function handleSubmit() {
 }
 
 .plan-price {
-  color: #667eea;
+  color: var(--edu-primary);
   font-weight: 700;
   margin: 4px 0;
 }
@@ -293,5 +308,16 @@ async function handleSubmit() {
 
 .register-footer a {
   margin-left: 4px;
+  font-weight: 750;
+}
+
+@media (max-width: 560px) {
+  .plan-list {
+    grid-template-columns: 1fr;
+  }
+
+  .register-card :deep(.ant-card-body) {
+    padding: 22px;
+  }
 }
 </style>

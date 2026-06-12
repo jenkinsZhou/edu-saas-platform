@@ -47,7 +47,9 @@
       "Bash(/opt/homebrew/opt/redis/bin/redis-cli flushdb *)",
       "Bash(sed -n '30,60p' edu-api/src/main/java/com/edusphere/api/controller/TenantController.java)",
       "Bash(sed -n '1,40p' edu-common/src/main/java/com/edusphere/common/domain/BaseEntity.java)",
-      "Bash(\"/Applications/IntelliJ IDEA.app/Contents/plugins/maven/lib/maven3/bin/mvn\" -o -q install -DskipTests -pl edu-tenant,edu-api)"
+      "Bash(\"/Applications/IntelliJ IDEA.app/Contents/plugins/maven/lib/maven3/bin/mvn\" -o -q install -DskipTests -pl edu-tenant,edu-api)",
+      "Bash(sed -n '150,160p' src/views/OrderView.vue)",
+      "Bash(sed -n '70,76p' src/views/OrderView.vue)"
     ]
   }
 }

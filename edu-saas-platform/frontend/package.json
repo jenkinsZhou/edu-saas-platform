@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "check:course-ui": "node scripts/check-course-ui.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

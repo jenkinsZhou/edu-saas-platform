@@ -8,9 +8,14 @@
       width="240"
     >
       <div class="logo">
-        <div class="logo-icon">📚</div>
+        <div class="logo-icon">
+          <BookOutlined />
+        </div>
         <transition name="fade">
-          <span v-if="!collapsed" class="logo-text">EduSphere</span>
+          <div v-if="!collapsed" class="logo-copy">
+            <span class="logo-text">EduSphere</span>
+            <span class="logo-subtitle">校区运营中台</span>
+          </div>
         </transition>
       </div>
 
@@ -29,14 +34,19 @@
           <MenuUnfoldOutlined
             v-if="collapsed"
             class="trigger"
+            aria-label="展开侧边栏"
             @click="() => (collapsed = !collapsed)"
           />
           <MenuFoldOutlined
             v-else
             class="trigger"
+            aria-label="收起侧边栏"
             @click="() => (collapsed = !collapsed)"
           />
-          <span class="header-title">教育SaaS管理平台</span>
+          <div class="header-copy">
+            <span class="header-title">教育 SaaS 管理平台</span>
+            <span class="header-subtitle">课程、订单、权限与机构主题集中管理</span>
+          </div>
         </div>
 
         <div class="header-right">
@@ -47,7 +57,7 @@
 
             <a-dropdown>
               <div class="user-info">
-                <a-avatar :size="32" style="background-color: #1890ff">
+                <a-avatar :size="34" class="user-avatar">
                   <template #icon><UserOutlined /></template>
                 </a-avatar>
                 <span class="user-name">{{ userLabel }}</span>
@@ -209,28 +219,88 @@ async function handleLogout() {
   min-height: 100vh;
 }
 
+.admin-layout :deep(.ant-layout-sider) {
+  background:
+    linear-gradient(180deg, rgba(59, 130, 246, 0.16), rgba(15, 27, 61, 0) 260px),
+    var(--edu-sidebar);
+  box-shadow: 8px 0 28px rgba(15, 23, 42, 0.14);
+  z-index: 20;
+}
+
+.admin-layout :deep(.ant-layout-sider-children) {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-layout :deep(.ant-menu-dark) {
+  flex: 1;
+  padding: 12px 10px;
+  background: transparent;
+}
+
+.admin-layout :deep(.ant-menu-dark .ant-menu-item) {
+  height: 42px;
+  margin: 4px 0;
+  border-radius: 8px;
+  color: rgba(219, 234, 254, 0.84);
+}
+
+.admin-layout :deep(.ant-menu-dark .ant-menu-item:hover) {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.admin-layout :deep(.ant-menu-dark .ant-menu-item-selected) {
+  color: #ffffff;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.95), rgba(30, 64, 175, 0.95));
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.3);
+}
+
 .logo {
   height: 64px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
-  padding: 16px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  justify-content: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(219, 234, 254, 0.12);
 }
 
 .logo-icon {
-  font-size: 32px;
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb, #d97706);
+  color: #ffffff;
+  font-size: 20px;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.22);
+}
+
+.logo-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
 }
 
 .logo-text {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 18px;
+  font-weight: 800;
   color: #fff;
+  letter-spacing: 0;
+}
+
+.logo-subtitle {
+  color: rgba(219, 234, 254, 0.68);
+  font-size: 12px;
 }
 
 .fade-enter-active, .fade-leave-active {
-  transition: opacity 0.3s;
+  transition: opacity 0.2s;
 }
 
 .fade-enter-from, .fade-leave-to {
@@ -238,36 +308,60 @@ async function handleLogout() {
 }
 
 .layout-header {
-  background: #fff;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
   padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(219, 229, 244, 0.88);
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.05);
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 15;
 }
 
 .header-left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
 }
 
 .trigger {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #334155;
   font-size: 18px;
   cursor: pointer;
-  transition: color 0.3s;
+  transition: color 0.2s, background 0.2s;
 }
 
 .trigger:hover {
-  color: #1890ff;
+  color: var(--edu-primary);
+  background: #eff6ff;
+}
+
+.header-copy {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
 }
 
 .header-title {
+  color: var(--edu-text);
   font-size: 16px;
-  font-weight: 500;
+  font-weight: 800;
+}
+
+.header-subtitle {
+  color: var(--edu-text-muted);
+  font-size: 12px;
 }
 
 .header-right {
@@ -276,34 +370,89 @@ async function handleLogout() {
 }
 
 .header-icon {
+  display: inline-flex;
+  width: 36px;
+  height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  color: #475569;
   font-size: 18px;
   cursor: pointer;
-  transition: color 0.3s;
+  transition: color 0.2s, background 0.2s;
 }
 
 .header-icon:hover {
-  color: #1890ff;
+  color: var(--edu-primary);
+  background: #eff6ff;
 }
 
 .user-info {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 40px;
+  padding: 3px 6px 3px 3px;
+  border: 1px solid transparent;
+  border-radius: 999px;
   cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.user-info:hover {
+  border-color: var(--edu-border);
+  background: #f8fafc;
+}
+
+.user-avatar {
+  background: linear-gradient(135deg, var(--edu-primary), var(--edu-secondary));
 }
 
 .user-name {
+  color: #334155;
   font-size: 14px;
+  font-weight: 650;
 }
 
 .layout-content {
-  padding: 24px;
-  background: #f0f2f5;
+  padding: 22px;
+  background:
+    radial-gradient(circle at top left, rgba(59, 130, 246, 0.08), transparent 340px),
+    var(--edu-page);
   min-height: calc(100vh - 64px);
 }
 
 .content-wrapper {
   max-width: 1400px;
   margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .admin-layout {
+    display: block;
+  }
+
+  .admin-layout :deep(.ant-layout-sider) {
+    display: none;
+  }
+
+  .admin-layout :deep(.ant-layout) {
+    width: 100%;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .layout-header {
+    padding: 0 14px;
+  }
+
+  .header-subtitle,
+  .user-name {
+    display: none;
+  }
+
+  .layout-content {
+    padding: 14px;
+  }
 }
 </style>

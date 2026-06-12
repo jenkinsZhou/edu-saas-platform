@@ -9,11 +9,11 @@ import { apiGet, isAuthenticated } from './api/http'
 import { applyTenantTheme, type TenantTheme } from './theme/applyTenantTheme'
 
 applyTenantTheme({
-  primaryColor: '#1890ff',
-  accentColor: '#52c41a',
+  primaryColor: '#1e40af',
+  accentColor: '#d97706',
   surfaceColor: '#ffffff',
-  sidebarColor: '#001529',
-  sidebarTextColor: '#ffffff'
+  sidebarColor: '#0f1b3d',
+  sidebarTextColor: '#dbeafe'
 })
 
 createApp(App)

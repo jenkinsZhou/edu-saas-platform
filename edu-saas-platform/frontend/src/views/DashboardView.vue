@@ -1,9 +1,9 @@
 <template>
-  <div class="page-container">
-    <a-card :bordered="false" class="page-header">
-      <a-page-header title="运营总览" sub-title="核心指标、数据趋势分析">
+  <div class="page-container dashboard-page">
+    <a-card :bordered="false" class="page-header dashboard-hero">
+      <a-page-header title="运营总览" sub-title="实时掌握招生、课消、出勤和审批风险">
         <template #extra>
-          <a-space>
+          <a-space wrap>
             <a-range-picker v-model:value="dateRange" @change="loadData" />
             <a-button @click="loadData">
               <template #icon><ReloadOutlined /></template>
@@ -14,127 +14,104 @@
       </a-page-header>
     </a-card>
 
-    <a-row :gutter="16" style="margin-top: 16px">
-      <a-col :span="6">
-        <a-card :bordered="false" :loading="loading">
+    <div class="metric-strip">
+      <a-card
+        v-for="card in metricCards"
+        :key="card.key"
+        :bordered="false"
+        :loading="loading"
+        class="data-card"
+        :style="{ '--card-accent': card.color }"
+      >
+        <div class="data-card-meta">
           <a-statistic
-            title="在读学员"
-            :value="metrics.studentCount"
-            :value-style="{ color: '#1890ff' }"
+            :title="card.title"
+            :value="card.value"
+            :suffix="card.suffix"
+            :precision="card.precision"
           >
-            <template #prefix><UserOutlined /></template>
+            <template #prefix>
+              <component :is="card.icon" />
+            </template>
           </a-statistic>
-          <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c">
-            较上月 <span style="color: #52c41a">+12.3%</span>
-          </div>
+          <span class="data-card-icon">
+            <component :is="card.icon" />
+          </span>
+        </div>
+        <div class="data-card-trend">
+          <span :class="card.trendClass">{{ card.trend }}</span>
+          <span>{{ card.hint }}</span>
+        </div>
+      </a-card>
+    </div>
+
+    <a-row :gutter="[16, 16]">
+      <a-col :xs="24" :lg="12">
+        <a-card title="收入趋势" :bordered="false" class="chart-panel">
+          <template #extra>
+            <a-tag color="blue">月度</a-tag>
+          </template>
+          <div ref="revenueChartRef" class="chart-box"></div>
         </a-card>
       </a-col>
 
-      <a-col :span="6">
-        <a-card :bordered="false" :loading="loading">
-          <a-statistic
-            title="本月课次"
-            :value="metrics.lessonCount"
-            :value-style="{ color: '#52c41a' }"
-          >
-            <template #prefix><BookOutlined /></template>
-          </a-statistic>
-          <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c">
-            较上月 <span style="color: #52c41a">+8.5%</span>
-          </div>
-        </a-card>
-      </a-col>
-
-      <a-col :span="6">
-        <a-card :bordered="false" :loading="loading">
-          <a-statistic
-            title="出勤率"
-            :value="metrics.attendanceRate"
-            suffix="%"
-            :value-style="{ color: '#faad14' }"
-            :precision="1"
-          >
-            <template #prefix><CheckCircleOutlined /></template>
-          </a-statistic>
-          <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c">
-            较上月 <span style="color: #52c41a">+2.1%</span>
-          </div>
-        </a-card>
-      </a-col>
-
-      <a-col :span="6">
-        <a-card :bordered="false" :loading="loading">
-          <a-statistic
-            title="待处理审批"
-            :value="metrics.pendingApprovals"
-            :value-style="{ color: '#ff4d4f' }"
-          >
-            <template #prefix><BellOutlined /></template>
-          </a-statistic>
-          <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c">
-            需要及时处理
-          </div>
+      <a-col :xs="24" :lg="12">
+        <a-card title="学员增长" :bordered="false" class="chart-panel">
+          <template #extra>
+            <a-tag color="green">新增/在读</a-tag>
+          </template>
+          <div ref="studentChartRef" class="chart-box"></div>
         </a-card>
       </a-col>
     </a-row>
 
-    <a-row :gutter="16" style="margin-top: 16px">
-      <a-col :span="12">
-        <a-card title="收入趋势" :bordered="false">
-          <div id="revenueChart" style="height: 300px"></div>
-        </a-card>
-      </a-col>
-
-      <a-col :span="12">
-        <a-card title="学员增长" :bordered="false">
-          <div id="studentChart" style="height: 300px"></div>
-        </a-card>
-      </a-col>
-    </a-row>
-
-    <a-row :gutter="16" style="margin-top: 16px">
-      <a-col :span="16">
-        <a-card title="最近订单" :bordered="false">
+    <a-row :gutter="[16, 16]">
+      <a-col :xs="24" :xl="16">
+        <a-card title="最近订单" :bordered="false" class="work-panel">
           <template #extra>
             <a-button type="link" @click="$router.push('/orders')">查看全部</a-button>
           </template>
 
-          <a-list :data-source="recentOrders" :loading="loading">
+          <a-list :data-source="recentOrders" :loading="loading" item-layout="horizontal">
             <template #renderItem="{ item }">
-              <a-list-item>
+              <a-list-item class="order-row">
                 <a-list-item-meta>
                   <template #title>
-                    <a-space>
-                      <span>{{ item.orderNo }}</span>
+                    <a-space wrap>
+                      <span class="order-no">{{ item.orderNo }}</span>
                       <a-tag :color="getOrderStatusColor(item.orderStatus)">
                         {{ item.orderStatus }}
                       </a-tag>
                     </a-space>
                   </template>
                   <template #description>
-                    {{ item.studentName }} · {{ item.courseProductName }}
+                    <span>{{ item.studentName }}</span>
+                    <span class="dot-separator"></span>
+                    <span>{{ item.courseProductName }}</span>
                   </template>
                 </a-list-item-meta>
-                <div style="color: #ff4d4f; font-weight: 500">¥{{ item.totalAmount }}</div>
+                <div class="amount-text">¥{{ item.totalAmount }}</div>
               </a-list-item>
             </template>
           </a-list>
         </a-card>
       </a-col>
 
-      <a-col :span="8">
-        <a-card title="待办事项" :bordered="false">
+      <a-col :xs="24" :xl="8">
+        <a-card title="待办事项" :bordered="false" class="work-panel">
           <a-list :data-source="todoList">
             <template #renderItem="{ item }">
-              <a-list-item>
+              <a-list-item class="todo-row">
                 <a-list-item-meta>
-                  <template #title>
-                    <a-space>
-                      <a-badge :status="item.status" />
-                      <span>{{ item.title }}</span>
-                    </a-space>
+                  <template #avatar>
+                    <a-badge :status="item.status" />
                   </template>
-                  <template #description>{{ item.time }}</template>
+                  <template #title>
+                    <span class="todo-title">{{ item.title }}</span>
+                  </template>
+                  <template #description>
+                    <span class="muted-text">{{ item.time }}</span>
+                  </template>
                 </a-list-item-meta>
               </a-list-item>
             </template>
@@ -146,7 +123,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, onUnmounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
   UserOutlined,
@@ -160,6 +137,10 @@ import { apiGet } from '../api/http'
 
 const loading = ref(false)
 const dateRange = ref()
+const revenueChartRef = ref<HTMLDivElement>()
+const studentChartRef = ref<HTMLDivElement>()
+let revenueChart: echarts.ECharts | undefined
+let studentChart: echarts.ECharts | undefined
 
 const metrics = ref({
   studentCount: 1286,
@@ -167,6 +148,51 @@ const metrics = ref({
   attendanceRate: 93.6,
   pendingApprovals: 18
 })
+
+const metricCards = computed(() => [
+  {
+    key: 'students',
+    title: '在读学员',
+    value: metrics.value.studentCount,
+    icon: UserOutlined,
+    color: '#1e40af',
+    trend: '+12.3%',
+    trendClass: 'trend-up',
+    hint: ' 较上月'
+  },
+  {
+    key: 'lessons',
+    title: '本月课次',
+    value: metrics.value.lessonCount,
+    icon: BookOutlined,
+    color: '#16a34a',
+    trend: '+8.5%',
+    trendClass: 'trend-up',
+    hint: ' 排课消耗'
+  },
+  {
+    key: 'attendance',
+    title: '出勤率',
+    value: metrics.value.attendanceRate,
+    suffix: '%',
+    precision: 1,
+    icon: CheckCircleOutlined,
+    color: '#d97706',
+    trend: '+2.1%',
+    trendClass: 'trend-up',
+    hint: ' 稳定提升'
+  },
+  {
+    key: 'approvals',
+    title: '待处理审批',
+    value: metrics.value.pendingApprovals,
+    icon: BellOutlined,
+    color: '#dc2626',
+    trend: '需处理',
+    trendClass: 'trend-warning',
+    hint: ' 转班/退费/排课'
+  }
+])
 
 const recentOrders = ref([
   { orderNo: 'ORD202406110001', studentName: '张三', courseProductName: '数学提高班', totalAmount: 1200, orderStatus: '已确认' },
@@ -180,9 +206,17 @@ const todoList = ref([
   { title: '确认排课安排', time: '1天前', status: 'processing' }
 ])
 
-onMounted(() => {
-  loadData()
+onMounted(async () => {
+  await nextTick()
   initCharts()
+  loadData()
+  window.addEventListener('resize', resizeCharts)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', resizeCharts)
+  revenueChart?.dispose()
+  studentChart?.dispose()
 })
 
 async function loadData() {
@@ -205,34 +239,69 @@ async function loadData() {
 }
 
 function initCharts() {
-  const revenueChart = echarts.init(document.getElementById('revenueChart')!)
-  const studentChart = echarts.init(document.getElementById('studentChart')!)
+  if (revenueChartRef.value) {
+    revenueChart = echarts.init(revenueChartRef.value)
+    revenueChart.setOption({
+      color: ['#1e40af'],
+      grid: { top: 26, right: 18, bottom: 28, left: 42 },
+      tooltip: { trigger: 'axis', backgroundColor: '#0f172a', borderWidth: 0, textStyle: { color: '#fff' } },
+      xAxis: {
+        type: 'category',
+        data: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        axisTick: { show: false },
+        axisLine: { lineStyle: { color: '#dbe5f4' } }
+      },
+      yAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: '#edf2f7' } }
+      },
+      series: [{
+        name: '收入',
+        type: 'line',
+        data: [12000, 15000, 18000, 22000, 25000, 28000],
+        smooth: true,
+        symbolSize: 7,
+        lineStyle: { width: 3 },
+        areaStyle: {
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: 'rgba(30, 64, 175, 0.22)' },
+            { offset: 1, color: 'rgba(30, 64, 175, 0)' }
+          ])
+        }
+      }]
+    })
+  }
 
-  revenueChart.setOption({
-    tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月'] },
-    yAxis: { type: 'value' },
-    series: [{
-      name: '收入',
-      type: 'line',
-      data: [12000, 15000, 18000, 22000, 25000, 28000],
-      smooth: true,
-      itemStyle: { color: '#1890ff' },
-      areaStyle: { color: 'rgba(24, 144, 255, 0.1)' }
-    }]
-  })
+  if (studentChartRef.value) {
+    studentChart = echarts.init(studentChartRef.value)
+    studentChart.setOption({
+      color: ['#16a34a'],
+      grid: { top: 26, right: 18, bottom: 28, left: 42 },
+      tooltip: { trigger: 'axis', backgroundColor: '#0f172a', borderWidth: 0, textStyle: { color: '#fff' } },
+      xAxis: {
+        type: 'category',
+        data: ['1月', '2月', '3月', '4月', '5月', '6月'],
+        axisTick: { show: false },
+        axisLine: { lineStyle: { color: '#dbe5f4' } }
+      },
+      yAxis: {
+        type: 'value',
+        splitLine: { lineStyle: { color: '#edf2f7' } }
+      },
+      series: [{
+        name: '学员数',
+        type: 'bar',
+        data: [980, 1050, 1120, 1180, 1230, 1286],
+        barWidth: 26,
+        itemStyle: { borderRadius: [6, 6, 0, 0] }
+      }]
+    })
+  }
+}
 
-  studentChart.setOption({
-    tooltip: { trigger: 'axis' },
-    xAxis: { type: 'category', data: ['1月', '2月', '3月', '4月', '5月', '6月'] },
-    yAxis: { type: 'value' },
-    series: [{
-      name: '学员数',
-      type: 'bar',
-      data: [980, 1050, 1120, 1180, 1230, 1286],
-      itemStyle: { color: '#52c41a' }
-    }]
-  })
+function resizeCharts() {
+  revenueChart?.resize()
+  studentChart?.resize()
 }
 
 function getOrderStatusColor(status: string) {
@@ -246,7 +315,39 @@ function getOrderStatusColor(status: string) {
 </script>
 
 <style scoped>
-.page-container {
-  padding: 0;
+.dashboard-hero :deep(.ant-card-body) {
+  padding-bottom: 20px;
+}
+
+.work-panel {
+  min-height: 310px;
+}
+
+.order-row {
+  padding: 14px 0;
+}
+
+.order-no {
+  color: #1e293b;
+  font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
+  font-weight: 700;
+}
+
+.dot-separator {
+  display: inline-flex;
+  width: 4px;
+  height: 4px;
+  margin: 0 8px 2px;
+  border-radius: 999px;
+  background: #cbd5e1;
+}
+
+.todo-row {
+  padding: 13px 0;
+}
+
+.todo-title {
+  color: #1e293b;
+  font-weight: 700;
 }
 </style>

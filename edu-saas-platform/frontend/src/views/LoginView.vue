@@ -1,15 +1,49 @@
 <template>
-  <div class="login-container">
-    <div class="login-content">
+  <div class="auth-page">
+    <section class="auth-visual" aria-label="EduSphere 产品概览">
+      <div class="auth-brand">
+        <span class="auth-logo">
+          <BookOutlined />
+        </span>
+        <div>
+          <h1>EduSphere</h1>
+          <p>面向多校区教培机构的运营中台</p>
+        </div>
+      </div>
+
+      <div class="auth-board">
+        <div class="board-header">
+          <span>今日校区概览</span>
+          <a-tag color="blue">实时</a-tag>
+        </div>
+        <div class="board-grid">
+          <div>
+            <strong>1,286</strong>
+            <span>在读学员</span>
+          </div>
+          <div>
+            <strong>93.6%</strong>
+            <span>出勤率</span>
+          </div>
+          <div>
+            <strong>842</strong>
+            <span>本月课次</span>
+          </div>
+        </div>
+        <div class="board-bars">
+          <span style="width: 78%"></span>
+          <span style="width: 64%"></span>
+          <span style="width: 88%"></span>
+        </div>
+      </div>
+    </section>
+
+    <section class="auth-panel">
       <a-card class="login-card" :bordered="false">
         <div class="login-header">
-          <div class="logo">
-            <div class="logo-icon">📚</div>
-            <div class="logo-text">
-              <h1>EduSphere</h1>
-              <p>教育SaaS管理平台</p>
-            </div>
-          </div>
+          <span class="eyebrow">机构工作台</span>
+          <h2>欢迎回来</h2>
+          <p>登录后继续处理课程、订单和审批事项</p>
         </div>
 
         <a-form
@@ -70,20 +104,18 @@
         </a-form>
 
         <div class="login-footer">
-          <a-space :size="16">
-            <span>机构编码：demo</span>
-            <a-divider type="vertical" />
-            <span>账号：admin</span>
-            <a-divider type="vertical" />
-            <span>密码：demo123456</span>
-          </a-space>
+          <div class="demo-account">
+            <span>demo</span>
+            <span>admin</span>
+            <span>demo123456</span>
+          </div>
           <div class="register-entry">
             <span>还没有机构？</span>
             <router-link to="/register">新机构入驻</router-link>
           </div>
         </div>
       </a-card>
-    </div>
+    </section>
   </div>
 </template>
 
@@ -91,7 +123,7 @@
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { UserOutlined, LockOutlined, BankOutlined } from '@ant-design/icons-vue'
+import { UserOutlined, LockOutlined, BankOutlined, BookOutlined } from '@ant-design/icons-vue'
 import { login } from '../api/http'
 
 const router = useRouter()
@@ -130,98 +162,209 @@ async function handleSubmit() {
 </script>
 
 <style scoped>
-.login-container {
+.auth-page {
   min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(380px, 0.92fr);
+  background:
+    linear-gradient(135deg, rgba(15, 27, 61, 0.98), rgba(30, 64, 175, 0.92)),
+    #0f1b3d;
+}
+
+.auth-visual {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: clamp(36px, 5vw, 72px);
+  color: #ffffff;
+}
+
+.auth-brand {
   display: flex;
   align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  position: relative;
-  overflow: hidden;
-}
-
-.login-container::before {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-  animation: rotate 20s linear infinite;
-}
-
-@keyframes rotate {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-
-.login-content {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  max-width: 450px;
-  padding: 20px;
-}
-
-.login-card {
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 32px;
-}
-
-.logo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 16px;
 }
 
-.logo-icon {
-  font-size: 48px;
-  animation: bounce 2s ease-in-out infinite;
+.auth-logo {
+  display: inline-flex;
+  width: 54px;
+  height: 54px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
+  background: linear-gradient(135deg, #2563eb, #d97706);
+  font-size: 26px;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.26);
 }
 
-@keyframes bounce {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
-}
-
-.logo-text h1 {
+.auth-brand h1 {
   margin: 0;
-  font-size: 32px;
-  font-weight: 700;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  font-size: clamp(34px, 5vw, 58px);
+  font-weight: 850;
+  letter-spacing: 0;
 }
 
-.logo-text p {
-  margin: 4px 0 0;
-  font-size: 14px;
-  color: #8c8c8c;
+.auth-brand p {
+  margin: 8px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 16px;
+}
+
+.auth-board {
+  width: min(620px, 100%);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  padding: 22px;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
+  backdrop-filter: blur(18px);
+}
+
+.board-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 750;
+}
+
+.board-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.board-grid div {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.board-grid strong {
+  font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
+  font-size: 26px;
+}
+
+.board-grid span {
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 12px;
+}
+
+.board-bars {
+  display: grid;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.board-bars span {
+  display: block;
+  height: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #93c5fd, #fbbf24);
+}
+
+.auth-panel {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: 32px;
+  background: var(--edu-page);
+}
+
+.login-card {
+  width: min(440px, 100%);
+  border: 1px solid rgba(219, 229, 244, 0.95);
+  box-shadow: var(--edu-shadow-md);
+}
+
+.login-card :deep(.ant-card-body) {
+  padding: 30px;
+}
+
+.login-header {
+  margin-bottom: 24px;
+}
+
+.eyebrow {
+  color: var(--edu-accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.login-header h2 {
+  margin: 6px 0 6px;
+  color: var(--edu-text);
+  font-size: 30px;
+  font-weight: 850;
+}
+
+.login-header p {
+  margin: 0;
+  color: var(--edu-text-muted);
 }
 
 .login-footer {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 1px solid #f0f0f0;
-  color: #8c8c8c;
-  font-size: 14px;
+  display: grid;
+  gap: 14px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--edu-border);
+  color: var(--edu-text-muted);
+  font-size: 13px;
 }
 
-.register-entry {
-  margin-top: 12px;
+.demo-account {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.demo-account span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #eff6ff;
+  color: var(--edu-primary);
+  font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
+  font-weight: 650;
 }
 
 .register-entry a {
-  margin-left: 4px;
+  margin-left: 6px;
+  font-weight: 750;
+}
+
+@media (max-width: 900px) {
+  .auth-page {
+    grid-template-columns: 1fr;
+  }
+
+  .auth-visual {
+    min-height: auto;
+    padding: 32px 22px 24px;
+  }
+
+  .auth-board {
+    margin-top: 34px;
+  }
+
+  .auth-panel {
+    min-height: auto;
+    padding: 22px;
+  }
+}
+
+@media (max-width: 520px) {
+  .board-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .login-card :deep(.ant-card-body) {
+    padding: 22px;
+  }
 }
 </style>
