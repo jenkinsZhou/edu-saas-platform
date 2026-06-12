@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import AdminLayout from '../views/AdminLayout.vue'
 import DashboardView from '../views/DashboardView.vue'
 import CourseView from '../views/CourseView.vue'
+import StudentView from '../views/StudentView.vue'
 import OrderView from '../views/OrderView.vue'
 import SecurityView from '../views/SecurityView.vue'
 import TenantThemeView from '../views/TenantThemeView.vue'
@@ -20,6 +21,7 @@ export const router = createRouter({
       children: [
         { path: '', name: 'dashboard', component: DashboardView },
         { path: 'courses', name: 'courses', component: CourseView },
+        { path: 'students', name: 'students', component: StudentView },
         { path: 'orders', name: 'orders', component: OrderView },
         { path: 'security', name: 'security', component: SecurityView },
         { path: 'tenant-theme', name: 'tenant-theme', component: TenantThemeView }

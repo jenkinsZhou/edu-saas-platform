@@ -101,6 +101,7 @@ import {
   MenuUnfoldOutlined,
   DashboardOutlined,
   BookOutlined,
+  TeamOutlined,
   ShoppingOutlined,
   SafetyOutlined,
   BgColorsOutlined,
@@ -146,6 +147,7 @@ const loginUser = getLoginUser()
 const fallbackMenus: NavMenu[] = [
   { id: 1, parentId: 0, name: '运营总览', path: '/', permissionCode: 'dashboard:view', sortNo: 10 },
   { id: 2, parentId: 0, name: '课程中心', path: '/courses', permissionCode: 'course:product:view', sortNo: 20 },
+  { id: 6, parentId: 0, name: '学员管理', path: '/students', permissionCode: 'course:student:view', sortNo: 25 },
   { id: 3, parentId: 0, name: '订单中心', path: '/orders', permissionCode: 'order:order:view', sortNo: 30 },
   { id: 4, parentId: 0, name: '账号权限', path: '/security', permissionCode: 'system:role:view', sortNo: 40 },
   { id: 5, parentId: 0, name: '机构主题', path: '/tenant-theme', permissionCode: 'tenant:theme:view', sortNo: 50 }
@@ -156,6 +158,7 @@ const menus = ref<NavMenu[]>(fallbackMenus)
 const menuIcons: Record<string, any> = {
   '/': DashboardOutlined,
   '/courses': BookOutlined,
+  '/students': TeamOutlined,
   '/orders': ShoppingOutlined,
   '/security': SafetyOutlined,
   '/tenant-theme': BgColorsOutlined

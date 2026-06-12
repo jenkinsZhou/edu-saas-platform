@@ -44,6 +44,18 @@ stop_pid_file() {
     return
   fi
 
+  if [[ "$pid" == screen:* ]]; then
+    local session="${pid#screen:}"
+    if screen -ls | grep -q "[.]$session[[:space:]]"; then
+      info "Stopping $name screen session $session"
+      screen -S "$session" -X quit 2>/dev/null || true
+    else
+      info "$name screen session $session is not running"
+    fi
+    rm -f "$file"
+    return
+  fi
+
   if kill -0 "$pid" 2>/dev/null; then
     info "Stopping $name PID $pid"
     kill "$pid" 2>/dev/null || true
@@ -79,6 +91,8 @@ stop_container() {
 
 mkdir -p "$PID_DIR"
 
+screen -S edu-api -X quit 2>/dev/null || true
+screen -S edu-frontend -X quit 2>/dev/null || true
 stop_pid_file "$PID_DIR/edu-api.pid" "edu-api"
 stop_pid_file "$PID_DIR/frontend.pid" "frontend"
 

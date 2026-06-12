@@ -71,3 +71,5 @@ dump.rdb
 *.tmp
 *.temp
 screenlog.*
+# runtime pids
+edu-saas-platform/.pids/

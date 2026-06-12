@@ -270,3 +270,13 @@ VALUES
     (6141, 1, 3001, 4341),
     (6142, 1, 3001, 4342)
 ON DUPLICATE KEY UPDATE permission_id = VALUES(permission_id);
+
+-- 学员管理菜单（前端 /students 页面）
+INSERT INTO menu_permission (id, tenant_id, parent_id, name, type, route_path, permission_code, sort_no, created_by)
+VALUES (4006, 1, NULL, '学员管理', 'MENU', '/students', 'course:student:view', 25, 1001)
+ON DUPLICATE KEY UPDATE name = VALUES(name), route_path = VALUES(route_path),
+    type = VALUES(type), permission_code = VALUES(permission_code), sort_no = VALUES(sort_no);
+
+INSERT INTO role_permission (id, tenant_id, role_id, permission_id)
+VALUES (6143, 1, 3001, 4006)
+ON DUPLICATE KEY UPDATE permission_id = VALUES(permission_id);

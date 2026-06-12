@@ -67,7 +67,23 @@ fail() {
 }
 
 need_cmd() {
-  command -v "$1" >/dev/null 2>&1 || fail "Missing command: $1"
+  if command -v "$1" >/dev/null 2>&1; then
+    return
+  fi
+  case "$1" in
+    mvn)
+      fail "Missing command: mvn. Install Maven first: brew install maven"
+      ;;
+    java)
+      fail "Missing command: java. Install JDK 21 first: brew install openjdk@21"
+      ;;
+    docker)
+      fail "Missing command: docker. Install Docker Desktop or run without --with-deps after starting MySQL/Redis yourself."
+      ;;
+    *)
+      fail "Missing command: $1"
+      ;;
+  esac
 }
 
 port_pid() {
@@ -151,9 +167,18 @@ preflight() {
   need_cmd lsof
   need_cmd curl
   need_cmd nc
+  need_cmd screen
   if [[ "$FRONTEND_ONLY" -ne 1 ]]; then
     need_cmd java
     need_cmd mvn
+    if command -v /usr/libexec/java_home >/dev/null 2>&1; then
+      JAVA21_HOME="$(/usr/libexec/java_home -v 21 2>/dev/null || true)"
+      if [[ -n "${JAVA21_HOME:-}" ]]; then
+        export JAVA_HOME="$JAVA21_HOME"
+        export PATH="$JAVA_HOME/bin:$PATH"
+        info "Using Java 21: $JAVA_HOME"
+      fi
+    fi
   fi
   if [[ "$BACKEND_ONLY" -ne 1 ]]; then
     need_cmd node
@@ -212,21 +237,13 @@ start_backend() {
   fi
 
   info "Starting backend API. Log: $LOG_DIR/backend.log"
-  (
-    cd "$API_DIR"
-    if [[ "$WITH_DEPS" -eq 1 ]]; then
-      export SPRING_PROFILES_ACTIVE="${SPRING_PROFILES_ACTIVE:-private}"
-      export DB_URL="${DB_URL:-jdbc:mysql://127.0.0.1:3306/edu_saas?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}"
-      export DB_USERNAME="${DB_USERNAME:-root}"
-      export DB_PASSWORD="${DB_PASSWORD:-root}"
-      export REDIS_HOST="${REDIS_HOST:-127.0.0.1}"
-      export REDIS_PORT="${REDIS_PORT:-6379}"
-      export JWT_SECRET="${JWT_SECRET:-dev-local-jwt-secret-change-me-dev-local-jwt-secret}"
-      export PAYMENT_CALLBACK_SECRET="${PAYMENT_CALLBACK_SECRET:-dev-local-payment-secret}"
-    fi
-    mvn spring-boot:run
-  ) >"$LOG_DIR/backend.log" 2>&1 &
-  echo $! > "$api_pid"
+  screen -S edu-api -X quit 2>/dev/null || true
+  if [[ "$WITH_DEPS" -eq 1 ]]; then
+    screen -dmS edu-api bash -lc "cd '$API_DIR' && export JAVA_HOME='$JAVA_HOME' && export PATH=\"\$JAVA_HOME/bin:\$PATH\" && export SPRING_PROFILES_ACTIVE=\"\${SPRING_PROFILES_ACTIVE:-private}\" && export DB_URL=\"\${DB_URL:-jdbc:mysql://127.0.0.1:3306/edu_saas?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai}\" && export DB_USERNAME=\"\${DB_USERNAME:-root}\" && export DB_PASSWORD=\"\${DB_PASSWORD:-root}\" && export REDIS_HOST=\"\${REDIS_HOST:-127.0.0.1}\" && export REDIS_PORT=\"\${REDIS_PORT:-6379}\" && export JWT_SECRET=\"\${JWT_SECRET:-dev-local-jwt-secret-change-me-dev-local-jwt-secret}\" && export PAYMENT_CALLBACK_SECRET=\"\${PAYMENT_CALLBACK_SECRET:-dev-local-payment-secret}\" && mvn spring-boot:run > '$LOG_DIR/backend.log' 2>&1"
+  else
+    screen -dmS edu-api bash -lc "cd '$API_DIR' && export JAVA_HOME='$JAVA_HOME' && export PATH=\"\$JAVA_HOME/bin:\$PATH\" && mvn spring-boot:run > '$LOG_DIR/backend.log' 2>&1"
+  fi
+  echo "screen:edu-api" > "$api_pid"
   wait_for_http "http://127.0.0.1:8080/actuator/health" "Backend API" 90 || {
     warn "Backend log tail:"
     tail -n 80 "$LOG_DIR/backend.log" || true
@@ -253,11 +270,9 @@ start_frontend() {
   fi
 
   info "Starting frontend. Log: $LOG_DIR/frontend.log"
-  (
-    cd "$FRONTEND_DIR"
-    npm run dev -- --host 127.0.0.1
-  ) >"$LOG_DIR/frontend.log" 2>&1 &
-  echo $! > "$frontend_pid"
+  screen -S edu-frontend -X quit 2>/dev/null || true
+  screen -dmS edu-frontend bash -lc "cd '$FRONTEND_DIR' && npm run dev -- --host 127.0.0.1 > '$LOG_DIR/frontend.log' 2>&1"
+  echo "screen:edu-frontend" > "$frontend_pid"
   wait_for_port 5173 "Frontend" 30 || {
     warn "Frontend log tail:"
     tail -n 80 "$LOG_DIR/frontend.log" || true
