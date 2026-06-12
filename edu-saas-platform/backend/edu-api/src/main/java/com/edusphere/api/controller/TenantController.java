@@ -10,6 +10,8 @@ import com.edusphere.tenant.domain.TenantTheme;
 import com.edusphere.tenant.mapper.TenantMapper;
 import com.edusphere.tenant.mapper.TenantThemeMapper;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -70,5 +72,51 @@ public class TenantController {
                 "logoUrl", theme.getLogoUrl() == null ? "" : theme.getLogoUrl(),
                 "layout", theme.getLayout()
         ));
+    }
+
+    @PostMapping("/theme")
+    public ApiResult<Void> saveTheme(@RequestBody SaveThemeRequest request) {
+        Long tenantId = SecurityContext.tenantId();
+        TenantTheme theme = tenantThemeMapper.selectOne(new LambdaQueryWrapper<TenantTheme>()
+                .eq(TenantTheme::getTenantId, tenantId)
+                .eq(TenantTheme::getDeleted, false)
+                .last("limit 1"));
+        if (theme == null) {
+            throw new BizException(404, "租户主题不存在");
+        }
+        if (request.primaryColor() != null) {
+            theme.setPrimaryColor(requireColor(request.primaryColor()));
+        }
+        if (request.accentColor() != null) {
+            theme.setAccentColor(requireColor(request.accentColor()));
+        }
+        theme.setCustomCssVarsJson(String.format(
+                "{\"surfaceColor\":\"%s\",\"sidebarColor\":\"%s\",\"sidebarTextColor\":\"%s\"}",
+                orDefault(request.surfaceColor(), "#ffffff"),
+                orDefault(request.sidebarColor(), "#111827"),
+                orDefault(request.sidebarTextColor(), "#e5e7eb")));
+        tenantThemeMapper.updateById(theme);
+        redisSupportService.evict("tenant:theme:" + tenantId);
+        return ApiResult.ok();
+    }
+
+    public record SaveThemeRequest(
+            String primaryColor,
+            String accentColor,
+            String surfaceColor,
+            String sidebarColor,
+            String sidebarTextColor
+    ) {
+    }
+
+    private static String orDefault(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : requireColor(value);
+    }
+
+    private static String requireColor(String value) {
+        if (!value.matches("^#[0-9a-fA-F]{3,8}$")) {
+            throw new BizException(400, "颜色值格式不正确：" + value);
+        }
+        return value;
     }
 }

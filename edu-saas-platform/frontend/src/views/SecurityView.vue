@@ -92,7 +92,7 @@
 import { onMounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
-import { apiGet, apiPost } from '../api/http'
+import { apiGet, apiPut } from '../api/http'
 
 const rolesLoading = ref(false)
 const saving = ref(false)
@@ -110,7 +110,7 @@ async function loadRoles() {
   rolesLoading.value = true
   try {
     const res = await apiGet<any>('/system/roles')
-    roles.value = res.items || []
+    roles.value = res.records || []
   } catch (error) {
     message.error('加载角色失败')
   } finally {
@@ -120,8 +120,8 @@ async function loadRoles() {
 
 async function loadPermissions() {
   try {
-    const res = await apiGet<any>('/system/permissions')
-    permissionTree.value = buildTree(res.items || [])
+    const res = await apiGet<any>('/system/menus', { pageSize: 100 })
+    permissionTree.value = buildTree(res.records || [])
   } catch (error) {
     message.error('加载权限失败')
   }
@@ -165,7 +165,7 @@ async function savePermissions() {
 
   saving.value = true
   try {
-    await apiPost(`/system/roles/${selectedRole.value.id}/permissions`, {
+    await apiPut(`/system/roles/${selectedRole.value.id}/permissions`, {
       permissionIds: checkedPermissions.value
     })
     message.success('保存成功')

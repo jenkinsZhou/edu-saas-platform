@@ -144,7 +144,7 @@
 import { onMounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { PlusOutlined } from '@ant-design/icons-vue'
-import { apiGet, apiPost } from '../api/http'
+import { apiGet, apiPost, apiPut } from '../api/http'
 
 const courseLoading = ref(false)
 const classLoading = ref(false)
@@ -197,11 +197,11 @@ onMounted(() => {
 async function loadCourses() {
   courseLoading.value = true
   try {
-    const res = await apiGet<any>('/course/products', {
+    const res = await apiGet<any>('/courses/products', {
       page: coursePager.value.page,
       pageSize: coursePager.value.pageSize
     })
-    courses.value = res.items || []
+    courses.value = res.records || []
     coursePager.value.total = res.total || 0
   } catch (error) {
     message.error('加载课程失败')
@@ -213,11 +213,11 @@ async function loadCourses() {
 async function loadClasses() {
   classLoading.value = true
   try {
-    const res = await apiGet<any>('/course/class-groups', {
+    const res = await apiGet<any>('/courses/classes', {
       page: classPager.value.page,
       pageSize: classPager.value.pageSize
     })
-    classGroups.value = res.items || []
+    classGroups.value = res.records || []
     classPager.value.total = res.total || 0
   } catch (error) {
     message.error('加载班级失败')
@@ -229,11 +229,11 @@ async function loadClasses() {
 async function loadLessons() {
   lessonLoading.value = true
   try {
-    const res = await apiGet<any>('/course/lessons', {
+    const res = await apiGet<any>('/courses/lessons', {
       page: lessonPager.value.page,
       pageSize: lessonPager.value.pageSize
     })
-    lessons.value = res.items || []
+    lessons.value = res.records || []
     lessonPager.value.total = res.total || 0
   } catch (error) {
     message.error('加载课次失败')
@@ -262,13 +262,14 @@ function handleLessonTableChange(pagination: any) {
 
 async function createDemoCourse() {
   try {
-    await apiPost('/course/products', {
+    await apiPost('/courses/products', {
       name: '示例课程',
       categoryCode: 'DEMO',
       deliveryMode: 'OFFLINE',
       billingMode: 'BY_SESSION',
       totalLessons: 12,
-      listPrice: 1200
+      listPrice: 1200,
+      status: 'ON_SALE'
     })
     message.success('创建成功')
     loadCourses()
@@ -279,7 +280,7 @@ async function createDemoCourse() {
 
 async function disableCourse(id: number) {
   try {
-    await apiPost(`/course/products/${id}/disable`)
+    await apiPut(`/courses/products/${id}/disable`)
     message.success('下架成功')
     loadCourses()
   } catch (error) {

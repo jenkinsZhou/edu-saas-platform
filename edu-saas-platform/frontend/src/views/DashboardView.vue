@@ -188,9 +188,14 @@ onMounted(() => {
 async function loadData() {
   loading.value = true
   try {
-    const res = await apiGet<any>('/dashboard/metrics')
+    const res = await apiGet<any>('/reports/dashboard')
     if (res) {
-      metrics.value = res
+      metrics.value = {
+        studentCount: res.activeStudents ?? 0,
+        lessonCount: res.monthLessonCount ?? 0,
+        attendanceRate: Number(res.monthAttendanceRate ?? 0),
+        pendingApprovals: res.pendingApprovals ?? 0
+      }
     }
   } catch (error) {
     message.error('加载数据失败')

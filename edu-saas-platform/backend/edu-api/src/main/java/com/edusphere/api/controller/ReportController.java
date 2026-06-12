@@ -243,6 +243,14 @@ public class ReportController {
         BigDecimal attendanceRate = jdbcTemplate.queryForObject(attendanceSql, BigDecimal.class, tenantId, LocalDate.now().withDayOfMonth(1));
         dashboard.put("monthAttendanceRate", attendanceRate != null ? attendanceRate : BigDecimal.ZERO);
 
+        String lessonSql = "SELECT COUNT(*) FROM lesson_session WHERE tenant_id = ? AND deleted = 0 AND DATE(planned_start_at) >= ?";
+        Integer monthLessonCount = jdbcTemplate.queryForObject(lessonSql, Integer.class, tenantId, LocalDate.now().withDayOfMonth(1));
+        dashboard.put("monthLessonCount", monthLessonCount != null ? monthLessonCount : 0);
+
+        String pendingSql = "SELECT COUNT(*) FROM class_transfer_request WHERE tenant_id = ? AND deleted = 0 AND status = 'PENDING'";
+        Integer pendingApprovals = jdbcTemplate.queryForObject(pendingSql, Integer.class, tenantId);
+        dashboard.put("pendingApprovals", pendingApprovals != null ? pendingApprovals : 0);
+
         return ApiResult.ok(dashboard);
     }
 }

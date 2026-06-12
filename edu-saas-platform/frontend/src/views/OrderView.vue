@@ -147,7 +147,6 @@ const columns = [
 
 onMounted(() => {
   loadOrders()
-  loadSummary()
 })
 
 async function loadOrders() {
@@ -158,21 +157,15 @@ async function loadOrders() {
       pageSize: pager.value.pageSize,
       ...filters
     })
-    orders.value = res.items || []
+    orders.value = res.records || []
     pager.value.total = res.total || 0
+    if (res.summary) {
+      Object.assign(orderSummary, res.summary, { totalAmount: Number(res.summary.totalPayable ?? 0) })
+    }
   } catch (error) {
     message.error('加载订单失败')
   } finally {
     loading.value = false
-  }
-}
-
-async function loadSummary() {
-  try {
-    const res = await apiGet<any>('/orders/summary')
-    Object.assign(orderSummary, res)
-  } catch (error) {
-    console.error('加载统计失败', error)
   }
 }
 
