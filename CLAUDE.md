@@ -66,6 +66,8 @@ The five once-disabled controllers (Attendance, Contract, Notification, Report, 
 - The `tenant` table has no `tenant_id` column; the `Tenant` entity shadows the inherited `BaseEntity.tenantId` with `@TableField(exist = false)`.
 - MySQL 8 does not support `ALTER TABLE ... ADD COLUMN/INDEX IF NOT EXISTS` (MariaDB-only) — don't use it in Flyway migrations.
 - Demo permissions: `db/seed.sql` must contain a `menu_permission` row + `role_permission` grant for every `@RequirePermission` code, or endpoints return 403 for the demo admin.
+- `db/seed.sql` must be imported with utf8mb4 (`mysql --default-character-set=utf8mb4 < seed.sql`); the script now starts with `SET NAMES utf8mb4` as a guard, but older imports stored mojibake Chinese.
+- `a-statistic` icons go in the `#prefix` slot, not `:prefix="() => h(Icon)"` — function props render as literal text.
 - Don't put `@Cacheable` on controller methods returning `ApiResult` — records serialize without type info under the Redis cache's `NON_FINAL` default typing and fail to deserialize; SpEL `#param` keys only see method parameters (not locals like `tenantId`), which previously caused a cross-tenant cache-key bug.
 
 ## Frontend architecture

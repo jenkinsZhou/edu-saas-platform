@@ -20,9 +20,10 @@
           <a-statistic
             title="在读学员"
             :value="metrics.studentCount"
-            :prefix="() => h(UserOutlined)"
             :value-style="{ color: '#1890ff' }"
-          />
+          >
+            <template #prefix><UserOutlined /></template>
+          </a-statistic>
           <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c">
             较上月 <span style="color: #52c41a">+12.3%</span>
           </div>
@@ -34,9 +35,10 @@
           <a-statistic
             title="本月课次"
             :value="metrics.lessonCount"
-            :prefix="() => h(BookOutlined)"
             :value-style="{ color: '#52c41a' }"
-          />
+          >
+            <template #prefix><BookOutlined /></template>
+          </a-statistic>
           <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c">
             较上月 <span style="color: #52c41a">+8.5%</span>
           </div>
@@ -49,10 +51,11 @@
             title="出勤率"
             :value="metrics.attendanceRate"
             suffix="%"
-            :prefix="() => h(CheckCircleOutlined)"
             :value-style="{ color: '#faad14' }"
             :precision="1"
-          />
+          >
+            <template #prefix><CheckCircleOutlined /></template>
+          </a-statistic>
           <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c">
             较上月 <span style="color: #52c41a">+2.1%</span>
           </div>
@@ -64,9 +67,10 @@
           <a-statistic
             title="待处理审批"
             :value="metrics.pendingApprovals"
-            :prefix="() => h(BellOutlined)"
             :value-style="{ color: '#ff4d4f' }"
-          />
+          >
+            <template #prefix><BellOutlined /></template>
+          </a-statistic>
           <div style="margin-top: 8px; font-size: 12px; color: #8c8c8c">
             需要及时处理
           </div>
@@ -142,7 +146,7 @@
 </template>
 
 <script setup lang="ts">
-import { h, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { message } from 'ant-design-vue'
 import {
   UserOutlined,

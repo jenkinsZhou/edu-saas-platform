@@ -1,3 +1,8 @@
+-- 演示数据初始化脚本
+-- 重要：必须用 utf8mb4 字符集导入，否则中文会乱码：
+--   mysql -uroot --default-character-set=utf8mb4 < seed.sql
+SET NAMES utf8mb4;
+
 USE edu_saas;
 
 INSERT INTO tenant (id, name, code, status, plan_code)

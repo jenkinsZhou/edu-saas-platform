@@ -77,3 +77,7 @@ edu:
       initial-delay-ms: ${PAYMENT_COMPENSATION_INITIAL_DELAY_MS:30000}
       batch-size: ${PAYMENT_COMPENSATION_BATCH_SIZE:100}
       max-check-count: ${PAYMENT_COMPENSATION_MAX_CHECK_COUNT:12}
+
+edu:
+  api:
+    include-error-detail: false
