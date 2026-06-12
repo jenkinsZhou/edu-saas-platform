@@ -109,6 +109,12 @@ export async function apiGet<T>(url: string, params?: Record<string, unknown>): 
   return unwrap(response.data)
 }
 
+// 公开接口（注册等），无需登录态
+export async function apiPublicPost<T>(url: string, data?: unknown): Promise<T> {
+  const response = await http.post<ApiResult<T>>(url, data)
+  return unwrap(response.data)
+}
+
 export async function apiPost<T>(url: string, data?: unknown): Promise<T> {
   requireAuth()
   const response = await http.post<ApiResult<T>>(url, data)

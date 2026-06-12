@@ -71,10 +71,16 @@
 
         <div class="login-footer">
           <a-space :size="16">
-            <span>演示账号：admin</span>
+            <span>机构编码：demo</span>
             <a-divider type="vertical" />
-            <span>密码：123456</span>
+            <span>账号：admin</span>
+            <a-divider type="vertical" />
+            <span>密码：demo123456</span>
           </a-space>
+          <div class="register-entry">
+            <span>还没有机构？</span>
+            <router-link to="/register">新机构入驻</router-link>
+          </div>
         </div>
       </a-card>
     </div>
@@ -93,8 +99,8 @@ const route = useRoute()
 const loading = ref(false)
 
 const form = reactive({
-  organizationCode: 'demo',
-  username: '',
+  organizationCode: typeof route.query.org === 'string' ? route.query.org : 'demo',
+  username: typeof route.query.username === 'string' ? route.query.username : '',
   password: ''
 })
 
@@ -209,5 +215,13 @@ async function handleSubmit() {
   border-top: 1px solid #f0f0f0;
   color: #8c8c8c;
   font-size: 14px;
+}
+
+.register-entry {
+  margin-top: 12px;
+}
+
+.register-entry a {
+  margin-left: 4px;
 }
 </style>

@@ -30,6 +30,7 @@ public class DevSecurityConfig {
                                 "/api/auth/login",
                                 "/api/auth/refresh",
                                 "/api/auth/logout",
+                                "/api/tenant/register",
                                 "/api/orders/callbacks/payment",
                                 "/api/health/**",
                                 "/actuator/health/**",

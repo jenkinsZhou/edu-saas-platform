@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.edusphere.common.api.ApiResult;
 import com.edusphere.common.exception.BizException;
 import com.edusphere.common.cache.RedisSupportService;
+import com.edusphere.security.context.SecurityContext;
 import com.edusphere.tenant.domain.Tenant;
 import com.edusphere.tenant.domain.TenantTheme;
 import com.edusphere.tenant.mapper.TenantMapper;
@@ -19,8 +20,6 @@ import java.time.Duration;
 @RequestMapping("/api/tenant")
 public class TenantController {
 
-    private static final Long DEMO_TENANT_ID = 1L;
-
     private final TenantMapper tenantMapper;
     private final TenantThemeMapper tenantThemeMapper;
     private final RedisSupportService redisSupportService;
@@ -33,7 +32,7 @@ public class TenantController {
 
     @GetMapping("/current")
     public ApiResult<Map<String, Object>> currentTenant() {
-        Tenant tenant = tenantMapper.selectById(DEMO_TENANT_ID);
+        Tenant tenant = tenantMapper.selectById(SecurityContext.tenantId());
         if (tenant == null) {
             throw new BizException(404, "租户不存在");
         }
@@ -48,12 +47,13 @@ public class TenantController {
 
     @GetMapping("/theme")
     public ApiResult<Map<String, Object>> theme() {
+        Long tenantId = SecurityContext.tenantId();
         TenantTheme theme = redisSupportService.getOrLoadJson(
-                "tenant:theme:" + DEMO_TENANT_ID,
+                "tenant:theme:" + tenantId,
                 Duration.ofMinutes(10),
                 TenantTheme.class,
                 () -> tenantThemeMapper.selectOne(new LambdaQueryWrapper<TenantTheme>()
-                        .eq(TenantTheme::getTenantId, DEMO_TENANT_ID)
+                        .eq(TenantTheme::getTenantId, tenantId)
                         .eq(TenantTheme::getDeleted, false)
                         .last("limit 1"))
         );
