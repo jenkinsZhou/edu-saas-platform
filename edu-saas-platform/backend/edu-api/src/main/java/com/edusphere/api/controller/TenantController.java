@@ -9,12 +9,14 @@ import com.edusphere.tenant.domain.Tenant;
 import com.edusphere.tenant.domain.TenantTheme;
 import com.edusphere.tenant.mapper.TenantMapper;
 import com.edusphere.tenant.mapper.TenantThemeMapper;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.time.Duration;
 
@@ -22,14 +24,22 @@ import java.time.Duration;
 @RequestMapping("/api/tenant")
 public class TenantController {
 
+    private static final String DEFAULT_SURFACE = "#ffffff";
+    private static final String DEFAULT_SIDEBAR = "#0f1b3d";
+    private static final String DEFAULT_SIDEBAR_TEXT = "#dbeafe";
+    private static final String DEFAULT_BRAND_ICON = "book";
+
     private final TenantMapper tenantMapper;
     private final TenantThemeMapper tenantThemeMapper;
     private final RedisSupportService redisSupportService;
+    private final ObjectMapper objectMapper;
 
-    public TenantController(TenantMapper tenantMapper, TenantThemeMapper tenantThemeMapper, RedisSupportService redisSupportService) {
+    public TenantController(TenantMapper tenantMapper, TenantThemeMapper tenantThemeMapper,
+                            RedisSupportService redisSupportService, ObjectMapper objectMapper) {
         this.tenantMapper = tenantMapper;
         this.tenantThemeMapper = tenantThemeMapper;
         this.redisSupportService = redisSupportService;
+        this.objectMapper = objectMapper;
     }
 
     @GetMapping("/current")
@@ -62,16 +72,18 @@ public class TenantController {
         if (theme == null) {
             throw new BizException(404, "租户主题不存在");
         }
-        return ApiResult.ok(Map.of(
-                "name", theme.getName(),
-                "primaryColor", theme.getPrimaryColor(),
-                "accentColor", theme.getAccentColor(),
-                "surfaceColor", "#ffffff",
-                "sidebarColor", "#111827",
-                "sidebarTextColor", "#e5e7eb",
-                "logoUrl", theme.getLogoUrl() == null ? "" : theme.getLogoUrl(),
-                "layout", theme.getLayout()
-        ));
+        Map<String, String> vars = parseVars(theme.getCustomCssVarsJson());
+        Map<String, Object> result = new HashMap<>();
+        result.put("name", theme.getName());
+        result.put("primaryColor", theme.getPrimaryColor());
+        result.put("accentColor", theme.getAccentColor());
+        result.put("surfaceColor", vars.getOrDefault("surfaceColor", DEFAULT_SURFACE));
+        result.put("sidebarColor", vars.getOrDefault("sidebarColor", DEFAULT_SIDEBAR));
+        result.put("sidebarTextColor", vars.getOrDefault("sidebarTextColor", DEFAULT_SIDEBAR_TEXT));
+        result.put("brandIcon", vars.getOrDefault("brandIcon", DEFAULT_BRAND_ICON));
+        result.put("logoUrl", theme.getLogoUrl() == null ? "" : theme.getLogoUrl());
+        result.put("layout", theme.getLayout());
+        return ApiResult.ok(result);
     }
 
     @PostMapping("/theme")
@@ -90,11 +102,12 @@ public class TenantController {
         if (request.accentColor() != null) {
             theme.setAccentColor(requireColor(request.accentColor()));
         }
-        theme.setCustomCssVarsJson(String.format(
-                "{\"surfaceColor\":\"%s\",\"sidebarColor\":\"%s\",\"sidebarTextColor\":\"%s\"}",
-                orDefault(request.surfaceColor(), "#ffffff"),
-                orDefault(request.sidebarColor(), "#111827"),
-                orDefault(request.sidebarTextColor(), "#e5e7eb")));
+        Map<String, String> vars = new HashMap<>();
+        vars.put("surfaceColor", orDefault(request.surfaceColor(), DEFAULT_SURFACE));
+        vars.put("sidebarColor", orDefault(request.sidebarColor(), DEFAULT_SIDEBAR));
+        vars.put("sidebarTextColor", orDefault(request.sidebarTextColor(), DEFAULT_SIDEBAR_TEXT));
+        vars.put("brandIcon", requireIconKey(request.brandIcon()));
+        theme.setCustomCssVarsJson(writeVars(vars));
         tenantThemeMapper.updateById(theme);
         redisSupportService.evict("tenant:theme:" + tenantId);
         return ApiResult.ok();
@@ -105,8 +118,29 @@ public class TenantController {
             String accentColor,
             String surfaceColor,
             String sidebarColor,
-            String sidebarTextColor
+            String sidebarTextColor,
+            String brandIcon
     ) {
+    }
+
+    private Map<String, String> parseVars(String json) {
+        if (json == null || json.isBlank()) {
+            return Map.of();
+        }
+        try {
+            Map<String, String> parsed = objectMapper.readValue(json, new com.fasterxml.jackson.core.type.TypeReference<Map<String, String>>() {});
+            return parsed == null ? Map.of() : parsed;
+        } catch (Exception e) {
+            return Map.of();
+        }
+    }
+
+    private String writeVars(Map<String, String> vars) {
+        try {
+            return objectMapper.writeValueAsString(vars);
+        } catch (Exception e) {
+            throw new BizException(500, "主题序列化失败");
+        }
     }
 
     private static String orDefault(String value, String fallback) {
@@ -116,6 +150,16 @@ public class TenantController {
     private static String requireColor(String value) {
         if (!value.matches("^#[0-9a-fA-F]{3,8}$")) {
             throw new BizException(400, "颜色值格式不正确：" + value);
+        }
+        return value;
+    }
+
+    private static String requireIconKey(String value) {
+        if (value == null || value.isBlank()) {
+            return DEFAULT_BRAND_ICON;
+        }
+        if (!value.matches("^[a-zA-Z]{2,32}$")) {
+            throw new BizException(400, "图标标识不合法：" + value);
         }
         return value;
     }

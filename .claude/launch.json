@@ -1,0 +1,13 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "edu-frontend",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--", "--host", "127.0.0.1"],
+      "port": 5173,
+      "autoPort": true,
+      "cwd": "edu-saas-platform/frontend"
+    }
+  ]
+}

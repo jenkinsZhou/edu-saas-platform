@@ -88,6 +88,12 @@ edu:
       initial-delay-ms: 30000
       batch-size: 100
       max-check-count: 12
+  license:
+    # 本地开发默认关闭授权校验，私有化交付走 application-private.yml（默认开启）
+    enabled: ${LICENSE_ENABLED:false}
+    public-key: ${LICENSE_PUBLIC_KEY:}
+    file: ${LICENSE_FILE:}
+    fingerprint: ${LICENSE_FINGERPRINT:}
 
 # MyBatis配置
 mybatis-plus:

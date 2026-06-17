@@ -31,31 +31,19 @@
       </a-page-header>
     </a-card>
 
-    <a-row :gutter="16" style="margin-top: 16px">
-      <a-col :span="8">
-        <a-card :bordered="false" :loading="loading">
-          <a-statistic title="学员总数" :value="stats.total">
-            <template #prefix><TeamOutlined /></template>
-          </a-statistic>
-        </a-card>
-      </a-col>
-      <a-col :span="8">
-        <a-card :bordered="false" :loading="loading">
-          <a-statistic title="在读学员" :value="stats.active" :value-style="{ color: '#52c41a' }">
-            <template #prefix><UserOutlined /></template>
-          </a-statistic>
-        </a-card>
-      </a-col>
-      <a-col :span="8">
-        <a-card :bordered="false" :loading="loading">
-          <a-statistic title="本页其他状态" :value="stats.inactive" :value-style="{ color: '#faad14' }">
-            <template #prefix><PauseCircleOutlined /></template>
-          </a-statistic>
-        </a-card>
-      </a-col>
-    </a-row>
+    <div class="metric-strip student-summary">
+      <a-card :bordered="false" :loading="loading" class="data-card" style="--card-accent: #1e40af">
+        <a-statistic title="学员总数" :value="stats.total" />
+      </a-card>
+      <a-card :bordered="false" :loading="loading" class="data-card" style="--card-accent: #16a34a">
+        <a-statistic title="在读学员" :value="stats.active" />
+      </a-card>
+      <a-card :bordered="false" :loading="loading" class="data-card" style="--card-accent: #d97706">
+        <a-statistic title="停课 / 结业（本页）" :value="stats.inactive" />
+      </a-card>
+    </div>
 
-    <a-card :bordered="false" style="margin-top: 16px">
+    <a-card :bordered="false">
       <a-table
         :data-source="students"
         :columns="columns"
@@ -135,7 +123,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { PlusOutlined, TeamOutlined, UserOutlined, PauseCircleOutlined } from '@ant-design/icons-vue'
+import { PlusOutlined } from '@ant-design/icons-vue'
 import { apiGet, apiPost, apiPut } from '../api/http'
 
 interface StudentRecord {
@@ -270,5 +258,15 @@ function statusColor(status: string) {
 <style scoped>
 .page-container {
   padding: 0;
+}
+
+.student-summary {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 768px) {
+  .student-summary {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

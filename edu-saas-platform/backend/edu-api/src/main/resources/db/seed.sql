@@ -280,3 +280,17 @@ ON DUPLICATE KEY UPDATE name = VALUES(name), route_path = VALUES(route_path),
 INSERT INTO role_permission (id, tenant_id, role_id, permission_id)
 VALUES (6143, 1, 3001, 4006)
 ON DUPLICATE KEY UPDATE permission_id = VALUES(permission_id);
+
+-- 授权管理菜单（私有化部署 License）：菜单 + 查看/管理两个权限
+INSERT INTO menu_permission (id, tenant_id, parent_id, name, type, route_path, permission_code, sort_no, created_by)
+VALUES
+    (4007, 1, NULL, '授权管理', 'MENU', '/license', 'system:license:view', 95, 1001),
+    (4352, 1, 4007, '授权管理', 'BUTTON', NULL, 'system:license:manage', 97, 1001)
+ON DUPLICATE KEY UPDATE name = VALUES(name), parent_id = VALUES(parent_id), route_path = VALUES(route_path),
+    type = VALUES(type), permission_code = VALUES(permission_code), sort_no = VALUES(sort_no);
+
+INSERT INTO role_permission (id, tenant_id, role_id, permission_id)
+VALUES
+    (6144, 1, 3001, 4007),
+    (6146, 1, 3001, 4352)
+ON DUPLICATE KEY UPDATE permission_id = VALUES(permission_id);

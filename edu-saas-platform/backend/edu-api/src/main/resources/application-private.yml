@@ -78,3 +78,12 @@ edu:
       initial-delay-ms: ${PAYMENT_COMPENSATION_INITIAL_DELAY_MS:30000}
       batch-size: ${PAYMENT_COMPENSATION_BATCH_SIZE:100}
       max-check-count: ${PAYMENT_COMPENSATION_MAX_CHECK_COUNT:12}
+  license:
+    # 私有化交付默认开启授权校验
+    enabled: ${LICENSE_ENABLED:true}
+    # 厂商签发授权所用密钥对的公钥（X.509, Base64），由 LicenseGenerator keygen 生成
+    public-key: ${LICENSE_PUBLIC_KEY:}
+    # 启动时若数据库无授权，尝试从该文件导入（随交付包附带授权文件时使用）
+    file: ${LICENSE_FILE:/data/license/license.key}
+    # 显式固定机器码（容器环境网卡多变时建议设置后再签发绑定授权）
+    fingerprint: ${LICENSE_FINGERPRINT:}

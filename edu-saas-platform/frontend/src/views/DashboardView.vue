@@ -29,11 +29,7 @@
             :value="card.value"
             :suffix="card.suffix"
             :precision="card.precision"
-          >
-            <template #prefix>
-              <component :is="card.icon" />
-            </template>
-          </a-statistic>
+          />
           <span class="data-card-icon">
             <component :is="card.icon" />
           </span>
@@ -282,28 +278,38 @@ function initCharts() {
     revenueChart = echarts.init(revenueChartRef.value)
     revenueChart.setOption({
       color: ['#1e40af'],
-      grid: { top: 26, right: 18, bottom: 28, left: 42 },
-      tooltip: { trigger: 'axis', backgroundColor: '#0f172a', borderWidth: 0, textStyle: { color: '#fff' } },
+      grid: { top: 24, right: 16, bottom: 26, left: 46 },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(15, 28, 52, 0.94)',
+        borderWidth: 0,
+        padding: [8, 12],
+        textStyle: { color: '#fff', fontSize: 12 },
+        extraCssText: 'border-radius:8px;box-shadow:0 8px 24px rgba(15,28,52,0.25);'
+      },
       xAxis: {
         type: 'category',
         data: [],
+        boundaryGap: false,
         axisTick: { show: false },
-        axisLine: { lineStyle: { color: '#dbe5f4' } }
+        axisLine: { show: false },
+        axisLabel: { color: '#8a96a8', fontSize: 12 }
       },
       yAxis: {
         type: 'value',
-        splitLine: { lineStyle: { color: '#edf2f7' } }
+        axisLabel: { color: '#8a96a8', fontSize: 12 },
+        splitLine: { lineStyle: { color: '#eef1f6', type: 'dashed' } }
       },
       series: [{
         name: '实收金额',
         type: 'line',
         data: [],
         smooth: true,
-        symbolSize: 7,
-        lineStyle: { width: 3 },
+        showSymbol: false,
+        lineStyle: { width: 2.5 },
         areaStyle: {
           color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-            { offset: 0, color: 'rgba(30, 64, 175, 0.22)' },
+            { offset: 0, color: 'rgba(30, 64, 175, 0.20)' },
             { offset: 1, color: 'rgba(30, 64, 175, 0)' }
           ])
         }
@@ -314,26 +320,40 @@ function initCharts() {
   if (studentChartRef.value) {
     studentChart = echarts.init(studentChartRef.value)
     studentChart.setOption({
-      color: ['#16a34a'],
-      grid: { top: 26, right: 18, bottom: 28, left: 42 },
-      tooltip: { trigger: 'axis', backgroundColor: '#0f172a', borderWidth: 0, textStyle: { color: '#fff' } },
+      grid: { top: 24, right: 16, bottom: 26, left: 46 },
+      tooltip: {
+        trigger: 'axis',
+        backgroundColor: 'rgba(15, 28, 52, 0.94)',
+        borderWidth: 0,
+        padding: [8, 12],
+        textStyle: { color: '#fff', fontSize: 12 },
+        extraCssText: 'border-radius:8px;box-shadow:0 8px 24px rgba(15,28,52,0.25);'
+      },
       xAxis: {
         type: 'category',
         data: [],
         axisTick: { show: false },
-        axisLine: { lineStyle: { color: '#dbe5f4' } }
+        axisLine: { show: false },
+        axisLabel: { color: '#8a96a8', fontSize: 12 }
       },
       yAxis: {
         type: 'value',
         minInterval: 1,
-        splitLine: { lineStyle: { color: '#edf2f7' } }
+        axisLabel: { color: '#8a96a8', fontSize: 12 },
+        splitLine: { lineStyle: { color: '#eef1f6', type: 'dashed' } }
       },
       series: [{
         name: '新增学员',
         type: 'bar',
         data: [],
-        barWidth: 26,
-        itemStyle: { borderRadius: [6, 6, 0, 0] }
+        barWidth: 22,
+        itemStyle: {
+          borderRadius: [6, 6, 0, 0],
+          color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+            { offset: 0, color: '#22c55e' },
+            { offset: 1, color: '#16a34a' }
+          ])
+        }
       }]
     })
   }
@@ -379,9 +399,9 @@ function getOrderStatusLabel(status: string) {
 }
 
 .order-no {
-  color: #1e293b;
-  font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
-  font-weight: 700;
+  color: var(--edu-text);
+  font-family: var(--edu-font-mono);
+  font-weight: 650;
 }
 
 .dot-separator {

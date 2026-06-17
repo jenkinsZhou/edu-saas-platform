@@ -60,6 +60,8 @@ public class SystemController {
     private final ApplicationEventPublisher eventPublisher;
     private final RedisSupportService redisSupportService;
     private final PasswordService passwordService;
+    private final com.edusphere.api.license.LicenseQuotaService licenseQuotaService;
+    private final com.edusphere.api.license.LicenseService licenseService;
 
     public SystemController(
             AccountMapper accountMapper,
@@ -70,7 +72,9 @@ public class SystemController {
             JdbcTemplate jdbcTemplate,
             ApplicationEventPublisher eventPublisher,
             RedisSupportService redisSupportService,
-            PasswordService passwordService
+            PasswordService passwordService,
+            com.edusphere.api.license.LicenseQuotaService licenseQuotaService,
+            com.edusphere.api.license.LicenseService licenseService
     ) {
         this.accountMapper = accountMapper;
         this.sysUserMapper = sysUserMapper;
@@ -81,6 +85,8 @@ public class SystemController {
         this.eventPublisher = eventPublisher;
         this.redisSupportService = redisSupportService;
         this.passwordService = passwordService;
+        this.licenseQuotaService = licenseQuotaService;
+        this.licenseService = licenseService;
     }
 
     @GetMapping("/accounts")
@@ -139,6 +145,7 @@ public class SystemController {
     @Transactional
     public ApiResult<Long> createAccount(@RequestBody @Valid AccountRequest request) {
         Long tenantId = SecurityContext.tenantId();
+        licenseQuotaService.assertCanCreateAccount();
         Account duplicated = accountMapper.selectOne(new LambdaQueryWrapper<Account>()
                 .eq(Account::getTenantId, tenantId)
                 .eq(Account::getUsername, request.username())
@@ -578,6 +585,9 @@ public class SystemController {
             if (!isMenuVisible(menu, principal.permissions())) {
                 continue;
             }
+            if (!isMenuLicensed(menu.getRoutePath())) {
+                continue;
+            }
             nodeMap.put(menu.getId(), new MenuNode(
                     menu.getId(),
                     menu.getParentId() == null ? 0L : menu.getParentId(),
@@ -623,6 +633,30 @@ public class SystemController {
         payload.put("detail", log.getDetail() == null ? "" : log.getDetail());
         payload.put("createdAt", log.getCreatedAt());
         return payload;
+    }
+
+    /** 前端菜单路由 → 授权功能码映射；未列出的路由视为核心模块，始终放行。 */
+    private static final Map<String, String> MENU_FEATURE_BY_ROUTE = Map.ofEntries(
+            Map.entry("/attendance", "attendance"),
+            Map.entry("/classrooms", "classroom"),
+            Map.entry("/scheduling", "scheduling"),
+            Map.entry("/consumption", "consumption"),
+            Map.entry("/transfers", "transfer"),
+            Map.entry("/teachers", "teacher"),
+            Map.entry("/coupons", "marketing"),
+            Map.entry("/marketing", "marketing"),
+            Map.entry("/contracts", "contract"),
+            Map.entry("/notifications", "notification"),
+            Map.entry("/reports", "report")
+    );
+
+    /** 该菜单是否在当前授权范围内（用于按授权隐藏侧边栏）。 */
+    private boolean isMenuLicensed(String routePath) {
+        if (routePath == null || routePath.isBlank()) {
+            return true;
+        }
+        String feature = MENU_FEATURE_BY_ROUTE.get(routePath);
+        return feature == null || licenseService.isFeatureEnabled(feature);
     }
 
     private boolean isMenuVisible(MenuPermission menu, java.util.Set<String> permissions) {

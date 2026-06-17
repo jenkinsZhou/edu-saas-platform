@@ -6,6 +6,7 @@ import StudentView from '../views/StudentView.vue'
 import OrderView from '../views/OrderView.vue'
 import SecurityView from '../views/SecurityView.vue'
 import TenantThemeView from '../views/TenantThemeView.vue'
+import LicenseView from '../views/LicenseView.vue'
 import LoginView from '../views/LoginView.vue'
 import RegisterView from '../views/RegisterView.vue'
 import { isAuthenticated } from '../api/http'
@@ -24,7 +25,8 @@ export const router = createRouter({
         { path: 'students', name: 'students', component: StudentView },
         { path: 'orders', name: 'orders', component: OrderView },
         { path: 'security', name: 'security', component: SecurityView },
-        { path: 'tenant-theme', name: 'tenant-theme', component: TenantThemeView }
+        { path: 'tenant-theme', name: 'tenant-theme', component: TenantThemeView },
+        { path: 'license', name: 'license', component: LicenseView }
       ]
     }
   ]

@@ -1,30 +1,54 @@
 :root {
+  /* 品牌色（经设计系统校验，保持蓝+琥珀） */
   --edu-primary: #1e40af;
-  --edu-primary-strong: #172554;
+  --edu-primary-strong: #1b3aa0;
+  --edu-primary-soft: #eef3ff;
   --edu-secondary: #3b82f6;
   --edu-accent: #d97706;
   --edu-success: #16a34a;
   --edu-danger: #dc2626;
   --edu-warning: #d97706;
+
+  /* 表面与背景 */
   --edu-surface: #ffffff;
-  --edu-surface-soft: #f8fafc;
-  --edu-page: #f5f7fb;
+  --edu-surface-soft: #f7f9fc;
+  --edu-surface-hover: #f2f6fd;
+  --edu-page: #f4f6fb;
   --edu-sidebar: #0f1b3d;
   --edu-sidebar-text: #dbeafe;
-  --edu-border: #dbe5f4;
-  --edu-border-strong: #c7d7ee;
-  --edu-text: #0f172a;
-  --edu-text-muted: #64748b;
-  --edu-shadow-sm: 0 8px 24px rgba(15, 23, 42, 0.07);
-  --edu-shadow-md: 0 18px 48px rgba(15, 23, 42, 0.12);
-  --edu-radius: 8px;
-  --edu-radius-sm: 6px;
-  font-family: "Fira Sans", Inter, "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+
+  /* 描边 */
+  --edu-border: #e6ebf3;
+  --edu-border-strong: #d4ddec;
+
+  /* 文本 */
+  --edu-text: #0f1c34;
+  --edu-text-secondary: #475467;
+  --edu-text-muted: #8a96a8;
+
+  /* 阴影：更克制、更现代（小投影 + 极淡环境光） */
+  --edu-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --edu-shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06), 0 1px 3px rgba(16, 24, 40, 0.05);
+  --edu-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08), 0 2px 6px rgba(16, 24, 40, 0.04);
+  --edu-shadow-lg: 0 16px 40px rgba(16, 24, 40, 0.14);
+
+  /* 圆角节奏 */
+  --edu-radius: 12px;
+  --edu-radius-sm: 8px;
+  --edu-radius-xs: 6px;
+
+  /* 离线安全的系统字体栈（不依赖外网字体，私有化部署友好） */
+  --edu-font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC",
+    "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  --edu-font-mono: "SFMono-Regular", "JetBrains Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  font-family: var(--edu-font-sans);
   color: var(--edu-text);
   background: var(--edu-page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * {
@@ -34,9 +58,7 @@
 body {
   margin: 0;
   min-width: 320px;
-  background:
-    linear-gradient(180deg, rgba(219, 234, 254, 0.55), rgba(245, 247, 251, 0) 280px),
-    var(--edu-page);
+  background: var(--edu-page);
   color: var(--edu-text);
 }
 
@@ -49,8 +71,21 @@ select {
 
 a {
   color: var(--edu-primary);
+  text-decoration: none;
+  transition: color 0.18s ease;
 }
 
+a:hover {
+  color: var(--edu-secondary);
+}
+
+/* 全局键盘可达焦点环（无障碍） */
+:where(a, button, .ant-btn, .ant-input, .ant-select-selector):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--edu-primary) 55%, transparent);
+  outline-offset: 1px;
+}
+
+/* ============ 通用页面骨架 ============ */
 .page-container {
   display: grid;
   gap: 16px;
@@ -58,9 +93,9 @@ a {
 
 .page-header.ant-card {
   overflow: hidden;
-  border: 1px solid rgba(219, 229, 244, 0.9);
+  border: 1px solid var(--edu-border);
   background:
-    linear-gradient(135deg, rgba(30, 64, 175, 0.08), rgba(217, 119, 6, 0.08)),
+    radial-gradient(120% 140% at 0% 0%, rgba(30, 64, 175, 0.06), transparent 60%),
     var(--edu-surface);
   box-shadow: var(--edu-shadow-sm);
 }
@@ -75,62 +110,90 @@ a {
 
 .page-header .ant-page-header-heading-title {
   color: var(--edu-text);
-  font-size: 22px;
-  font-weight: 800;
-  letter-spacing: 0;
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .page-header .ant-page-header-heading-sub-title {
   color: var(--edu-text-muted);
 }
 
+/* ============ 卡片 ============ */
 .ant-card {
-  border: 1px solid rgba(219, 229, 244, 0.9);
+  border: 1px solid var(--edu-border);
   border-radius: var(--edu-radius);
   box-shadow: var(--edu-shadow-sm);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ant-card-hoverable:hover {
+  box-shadow: var(--edu-shadow-md);
+  border-color: var(--edu-border-strong);
 }
 
 .ant-card-head {
-  min-height: 50px;
-  border-color: rgba(219, 229, 244, 0.9);
+  min-height: 52px;
+  border-color: var(--edu-border);
+  padding: 0 18px;
 }
 
 .ant-card-head-title {
   color: var(--edu-text);
-  font-weight: 750;
+  font-weight: 650;
+  font-size: 15px;
 }
 
 .ant-card-body {
   padding: 18px;
 }
 
+/* ============ 按钮 ============ */
 .ant-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   border-radius: var(--edu-radius-sm);
-  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  font-weight: 550;
+  box-shadow: none;
+  transition: transform 0.06s ease, border-color 0.18s ease, color 0.18s ease,
+    background 0.18s ease, box-shadow 0.18s ease;
+}
+
+.ant-btn:not(:disabled):active {
+  transform: translateY(0.5px);
 }
 
 .ant-btn-primary {
   border-color: var(--edu-primary);
-  background: linear-gradient(135deg, var(--edu-primary), var(--edu-secondary));
-  box-shadow: 0 8px 18px rgba(30, 64, 175, 0.22);
+  background: var(--edu-primary);
+  box-shadow: 0 1px 2px rgba(30, 64, 175, 0.25);
 }
 
 .ant-btn-primary:not(:disabled):hover {
-  border-color: var(--edu-primary-strong);
-  background: linear-gradient(135deg, var(--edu-primary-strong), var(--edu-primary));
-  box-shadow: 0 10px 24px rgba(30, 64, 175, 0.28);
+  border-color: var(--edu-primary-strong) !important;
+  background: var(--edu-primary-strong) !important;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.28);
 }
 
+.ant-btn-default {
+  border-color: var(--edu-border-strong);
+  color: var(--edu-text-secondary);
+}
+
+.ant-btn-default:not(:disabled):hover {
+  border-color: var(--edu-secondary) !important;
+  color: var(--edu-primary) !important;
+}
+
+/* ============ 输入控件 ============ */
 .ant-input,
 .ant-input-affix-wrapper,
 .ant-select-selector,
 .ant-picker {
   border-radius: var(--edu-radius-sm) !important;
-  border-color: var(--edu-border) !important;
+  border-color: var(--edu-border-strong) !important;
 }
 
 .ant-input:hover,
@@ -140,33 +203,55 @@ a {
   border-color: var(--edu-secondary) !important;
 }
 
+.ant-input-affix-wrapper-focused,
+.ant-input:focus,
+.ant-picker-focused {
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.14) !important;
+}
+
+/* ============ 表格 ============ */
 .ant-table-wrapper {
   overflow-x: auto;
 }
 
 .ant-table {
-  color: #1e293b;
+  color: var(--edu-text);
 }
 
 .ant-table-thead > tr > th {
-  border-bottom-color: var(--edu-border);
-  font-size: 13px;
-  font-weight: 750;
+  background: var(--edu-surface-soft) !important;
+  border-bottom: 1px solid var(--edu-border) !important;
+  color: var(--edu-text-secondary);
+  font-size: 12.5px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
 }
 
 .ant-table-tbody > tr > td {
-  border-bottom-color: #edf2f7;
+  border-bottom-color: var(--edu-border);
 }
 
 .ant-table-tbody > tr:hover > td {
-  background: #f8fbff !important;
+  background: var(--edu-surface-hover) !important;
 }
 
+/* 数据列使用等宽对齐数字，避免跳动 */
+.ant-table-cell .amount-text,
+.ant-statistic-content,
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+/* ============ 标签 ============ */
 .ant-tag {
   border-radius: 999px;
-  font-weight: 650;
+  padding-inline: 9px;
+  font-weight: 550;
+  border: none;
 }
 
+/* ============ 统计数字 ============ */
 .ant-statistic-title {
   color: var(--edu-text-muted);
   font-size: 13px;
@@ -174,27 +259,35 @@ a {
 
 .ant-statistic-content {
   color: var(--edu-text);
-  font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
-  letter-spacing: 0;
+  font-family: var(--edu-font-mono);
+  letter-spacing: -0.01em;
 }
 
 .ant-list-item {
   padding-inline: 0;
 }
 
+/* ============ 弹窗 ============ */
+.ant-modal-content {
+  border-radius: var(--edu-radius) !important;
+}
+
+/* ============ 工具条 ============ */
 .compact-toolbar {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   align-items: center;
   justify-content: space-between;
-  padding: 14px;
+  padding: 14px 16px;
   margin-bottom: 16px;
-  border: 1px solid rgba(219, 229, 244, 0.9);
+  border: 1px solid var(--edu-border);
   border-radius: var(--edu-radius);
-  background: var(--edu-surface-soft);
+  background: var(--edu-surface);
+  box-shadow: var(--edu-shadow-xs);
 }
 
+/* ============ KPI 指标卡 ============ */
 .metric-strip {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -204,18 +297,25 @@ a {
 .data-card {
   position: relative;
   overflow: hidden;
-  min-height: 132px;
-  border: 1px solid rgba(219, 229, 244, 0.9);
+  min-height: 124px;
+  border: 1px solid var(--edu-border);
   border-radius: var(--edu-radius);
   background: var(--edu-surface);
   box-shadow: var(--edu-shadow-sm);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.data-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--edu-shadow-md);
+  border-color: var(--edu-border-strong);
 }
 
 .data-card::before {
   content: "";
   position: absolute;
   inset: 0 auto 0 0;
-  width: 4px;
+  width: 3px;
   background: var(--card-accent, var(--edu-primary));
 }
 
@@ -232,13 +332,13 @@ a {
 
 .data-card-icon {
   display: inline-flex;
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   align-items: center;
   justify-content: center;
-  border-radius: var(--edu-radius);
+  border-radius: 10px;
   color: var(--card-accent, var(--edu-primary));
-  background: color-mix(in srgb, var(--card-accent, var(--edu-primary)) 12%, white);
+  background: color-mix(in srgb, var(--card-accent, var(--edu-primary)) 11%, white);
   font-size: 20px;
 }
 
@@ -250,14 +350,15 @@ a {
 
 .trend-up {
   color: var(--edu-success);
-  font-weight: 750;
+  font-weight: 650;
 }
 
 .trend-warning {
   color: var(--edu-warning);
-  font-weight: 750;
+  font-weight: 650;
 }
 
+/* ============ 图表面板 ============ */
 .chart-panel {
   min-height: 376px;
 }
@@ -269,8 +370,8 @@ a {
 
 .amount-text {
   color: var(--edu-danger);
-  font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
-  font-weight: 750;
+  font-family: var(--edu-font-mono);
+  font-weight: 650;
 }
 
 .muted-text {
@@ -278,6 +379,7 @@ a {
   font-size: 12px;
 }
 
+/* ============ 响应式 ============ */
 @media (max-width: 1180px) {
   .metric-strip {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -285,10 +387,6 @@ a {
 }
 
 @media (max-width: 768px) {
-  body {
-    background: var(--edu-page);
-  }
-
   .page-header .ant-page-header-heading {
     gap: 12px;
   }

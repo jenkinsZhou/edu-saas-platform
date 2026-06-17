@@ -57,8 +57,10 @@ http.interceptors.response.use(
     const status = error.response?.status
     const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined
     const url = originalRequest?.url ?? ''
-    if (status === 401 || status === 403) {
-      if (status === 401 && refreshToken && originalRequest && !originalRequest._retry && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
+    // 仅 401（未认证/登录态失效）才清登录态并跳转登录页；
+    // 403（已登录但无权限）只抛出由调用方处理，不应把用户踢回登录页。
+    if (status === 401) {
+      if (refreshToken && originalRequest && !originalRequest._retry && !url.includes('/auth/login') && !url.includes('/auth/refresh')) {
         originalRequest._retry = true
         try {
           const newAccessToken = await refreshAccessToken()

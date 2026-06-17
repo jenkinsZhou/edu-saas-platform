@@ -13,28 +13,20 @@
 
       <div class="auth-board">
         <div class="board-header">
-          <span>今日校区概览</span>
-          <a-tag color="blue">实时</a-tag>
+          <span>平台能力</span>
+          <a-tag color="blue">私有化部署</a-tag>
         </div>
-        <div class="board-grid">
-          <div>
-            <strong>1,286</strong>
-            <span>在读学员</span>
-          </div>
-          <div>
-            <strong>93.6%</strong>
-            <span>出勤率</span>
-          </div>
-          <div>
-            <strong>842</strong>
-            <span>本月课次</span>
-          </div>
-        </div>
-        <div class="board-bars">
-          <span style="width: 78%"></span>
-          <span style="width: 64%"></span>
-          <span style="width: 88%"></span>
-        </div>
+        <ul class="feature-list">
+          <li v-for="feature in features" :key="feature.title">
+            <span class="feature-icon">
+              <component :is="feature.icon" />
+            </span>
+            <div class="feature-copy">
+              <strong>{{ feature.title }}</strong>
+              <span>{{ feature.desc }}</span>
+            </div>
+          </li>
+        </ul>
       </div>
     </section>
 
@@ -104,11 +96,12 @@
         </a-form>
 
         <div class="login-footer">
-          <div class="demo-account">
+          <button type="button" class="demo-account" @click="fillDemo" title="点击填入演示账号">
+            <span class="demo-label">演示账号</span>
             <span>demo</span>
             <span>admin</span>
             <span>demo123456</span>
-          </div>
+          </button>
           <div class="register-entry">
             <span>还没有机构？</span>
             <router-link to="/register">新机构入驻</router-link>
@@ -123,8 +116,26 @@
 import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { message } from 'ant-design-vue'
-import { UserOutlined, LockOutlined, BankOutlined, BookOutlined } from '@ant-design/icons-vue'
+import {
+  UserOutlined,
+  LockOutlined,
+  BankOutlined,
+  BookOutlined,
+  ClusterOutlined,
+  CalendarOutlined,
+  WalletOutlined,
+  SafetyCertificateOutlined,
+  LineChartOutlined
+} from '@ant-design/icons-vue'
 import { login } from '../api/http'
+
+const features = [
+  { icon: ClusterOutlined, title: '多校区统一运营', desc: '校区、班级、师资集中管理' },
+  { icon: CalendarOutlined, title: '智能排课与考勤', desc: '课表、点名、课消一体化' },
+  { icon: WalletOutlined, title: '在线收银与课消', desc: '订单、退费、课消精准核算' },
+  { icon: SafetyCertificateOutlined, title: '合同与审批流', desc: '转班、退费、合同到期提醒' },
+  { icon: LineChartOutlined, title: '经营数据看板', desc: '招生、营收、出勤实时洞察' }
+]
 
 const router = useRouter()
 const route = useRoute()
@@ -140,6 +151,12 @@ const rules = {
   organizationCode: [{ required: true, message: '请输入机构编码' }],
   username: [{ required: true, message: '请输入账号' }],
   password: [{ required: true, message: '请输入密码' }]
+}
+
+function fillDemo() {
+  form.organizationCode = 'demo'
+  form.username = 'admin'
+  form.password = 'demo123456'
 }
 
 async function handleSubmit() {
@@ -193,7 +210,7 @@ async function handleSubmit() {
   align-items: center;
   justify-content: center;
   border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 8px;
+  border-radius: 12px;
   background: linear-gradient(135deg, #2563eb, #d97706);
   font-size: 26px;
   box-shadow: 0 18px 42px rgba(0, 0, 0, 0.26);
@@ -215,7 +232,7 @@ async function handleSubmit() {
 .auth-board {
   width: min(620px, 100%);
   border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
+  border-radius: 14px;
   padding: 22px;
   background: rgba(255, 255, 255, 0.1);
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.26);
@@ -230,42 +247,56 @@ async function handleSubmit() {
   font-weight: 750;
 }
 
-.board-grid {
+.feature-list {
+  list-style: none;
+  margin: 18px 0 0;
+  padding: 0;
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-  margin-top: 22px;
+  gap: 8px;
 }
 
-.board-grid div {
-  display: grid;
-  gap: 6px;
-  padding: 14px;
-  border-radius: 8px;
+.feature-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.feature-list li:hover {
   background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.18);
 }
 
-.board-grid strong {
-  font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
-  font-size: 26px;
+.feature-icon {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(147, 197, 253, 0.18);
+  color: #bfdbfe;
+  font-size: 18px;
 }
 
-.board-grid span {
-  color: rgba(255, 255, 255, 0.66);
-  font-size: 12px;
-}
-
-.board-bars {
+.feature-copy {
   display: grid;
-  gap: 10px;
-  margin-top: 22px;
+  gap: 1px;
 }
 
-.board-bars span {
-  display: block;
-  height: 8px;
-  border-radius: 999px;
-  background: linear-gradient(90deg, #93c5fd, #fbbf24);
+.feature-copy strong {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.feature-copy span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12.5px;
 }
 
 .auth-panel {
@@ -321,15 +352,33 @@ async function handleSubmit() {
 .demo-account {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 8px;
+  padding: 8px 10px;
+  border: 1px dashed var(--edu-border-strong);
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
-.demo-account span {
+.demo-account:hover {
+  border-color: var(--edu-secondary);
+  background: var(--edu-primary-soft);
+}
+
+.demo-account .demo-label {
+  color: var(--edu-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.demo-account span:not(.demo-label) {
   padding: 4px 8px;
   border-radius: 999px;
   background: #eff6ff;
   color: var(--edu-primary);
-  font-family: "Fira Code", "SFMono-Regular", Consolas, monospace;
+  font-family: var(--edu-font-mono);
   font-weight: 650;
 }
 

@@ -71,8 +71,13 @@ services:
       PUBLIC_BASE_URL: ${PUBLIC_BASE_URL:-http://localhost}
       DEFAULT_ORGANIZATION_CODE: ${DEFAULT_ORGANIZATION_CODE:-demo}
       ORGANIZATION_BASE_DOMAIN: ${ORGANIZATION_BASE_DOMAIN:-}
+      LICENSE_ENABLED: ${LICENSE_ENABLED:-true}
+      LICENSE_PUBLIC_KEY: ${LICENSE_PUBLIC_KEY:-}
+      LICENSE_FILE: ${LICENSE_FILE:-/data/license/license.key}
+      LICENSE_FINGERPRINT: ${LICENSE_FINGERPRINT:-}
     volumes:
       - app-files:/data/files
+      - ./license:/data/license:ro
     ports:
       - "${API_BIND_IP:-127.0.0.1}:${API_PORT:-8080}:8080"
 

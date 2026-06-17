@@ -56,6 +56,7 @@ public class CourseController {
     private final StudentMapper studentMapper;
     private final AttendanceRecordMapper attendanceRecordMapper;
     private final ClassEnrollmentMapper classEnrollmentMapper;
+    private final com.edusphere.api.license.LicenseQuotaService licenseQuotaService;
 
     public CourseController(
             CourseProductMapper courseProductMapper,
@@ -64,7 +65,8 @@ public class CourseController {
             LessonSessionMapper lessonSessionMapper,
             StudentMapper studentMapper,
             AttendanceRecordMapper attendanceRecordMapper,
-            ClassEnrollmentMapper classEnrollmentMapper
+            ClassEnrollmentMapper classEnrollmentMapper,
+            com.edusphere.api.license.LicenseQuotaService licenseQuotaService
     ) {
         this.courseProductMapper = courseProductMapper;
         this.campusMapper = campusMapper;
@@ -73,6 +75,7 @@ public class CourseController {
         this.studentMapper = studentMapper;
         this.attendanceRecordMapper = attendanceRecordMapper;
         this.classEnrollmentMapper = classEnrollmentMapper;
+        this.licenseQuotaService = licenseQuotaService;
     }
 
     @GetMapping("/products")
@@ -432,6 +435,7 @@ public class CourseController {
     @Transactional
     public ApiResult<Long> createStudent(@RequestBody @Valid StudentRequest request) {
         Long tenantId = SecurityContext.tenantId();
+        licenseQuotaService.assertCanCreateStudent();
         Student student = new Student();
         student.setTenantId(tenantId);
         student.setName(request.name());

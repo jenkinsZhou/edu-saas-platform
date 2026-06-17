@@ -9,7 +9,7 @@
     >
       <div class="logo">
         <div class="logo-icon">
-          <BookOutlined />
+          <component :is="brandIconComponent" />
         </div>
         <transition name="fade">
           <div v-if="!collapsed" class="logo-copy">
@@ -86,6 +86,18 @@
 
       <a-layout-content class="layout-content">
         <div class="content-wrapper">
+          <a-alert
+            v-if="licenseBanner"
+            class="license-banner"
+            :type="licenseBanner.type"
+            :message="licenseBanner.message"
+            show-icon
+            banner
+          >
+            <template #action>
+              <a-button size="small" type="link" @click="router.push('/license')">前往授权管理</a-button>
+            </template>
+          </a-alert>
           <RouterView />
         </div>
       </a-layout-content>
@@ -105,6 +117,7 @@ import {
   ShoppingOutlined,
   SafetyOutlined,
   BgColorsOutlined,
+  SafetyCertificateOutlined,
   UserOutlined,
   BellOutlined,
   SettingOutlined,
@@ -112,6 +125,10 @@ import {
 } from '@ant-design/icons-vue'
 import { message } from 'ant-design-vue'
 import { apiGet, getLoginUser, logout } from '../api/http'
+import { brandIcon } from '../theme/applyTenantTheme'
+import { resolveBrandIcon } from '../theme/brandIcons'
+
+const brandIconComponent = computed(() => resolveBrandIcon(brandIcon.value))
 
 interface NavMenu {
   id: number
@@ -155,13 +172,20 @@ const fallbackMenus: NavMenu[] = [
 
 const menus = ref<NavMenu[]>(fallbackMenus)
 
+interface LicenseInfo {
+  status: string
+  message: string
+}
+const licenseBanner = ref<{ type: 'warning' | 'error'; message: string } | null>(null)
+
 const menuIcons: Record<string, any> = {
   '/': DashboardOutlined,
   '/courses': BookOutlined,
   '/students': TeamOutlined,
   '/orders': ShoppingOutlined,
   '/security': SafetyOutlined,
-  '/tenant-theme': BgColorsOutlined
+  '/tenant-theme': BgColorsOutlined,
+  '/license': SafetyCertificateOutlined
 }
 
 const menuItems = computed(() => {
@@ -200,7 +224,25 @@ onMounted(async () => {
   } catch (error) {
     console.warn('加载菜单失败，使用默认菜单', error)
   }
+  await loadLicenseBanner()
 })
+
+async function loadLicenseBanner() {
+  try {
+    const info = await apiGet<LicenseInfo>('/system/license')
+    if (info.status === 'VALID') {
+      licenseBanner.value = null
+    } else if (info.status === 'GRACE') {
+      licenseBanner.value = { type: 'warning', message: info.message }
+    } else {
+      // EXPIRED / INVALID / UNLICENSED：系统只读
+      licenseBanner.value = { type: 'error', message: info.message }
+    }
+  } catch {
+    // 无授权查看权限或接口异常时静默
+    licenseBanner.value = null
+  }
+}
 
 function handleMenuClick({ key }: { key: string }) {
   router.push(key)
@@ -352,19 +394,23 @@ async function handleLogout() {
 
 .header-copy {
   display: grid;
-  gap: 1px;
+  gap: 2px;
   min-width: 0;
+  /* 覆盖 Ant Design Layout Header 默认的 line-height:64px，否则标题撑高被裁切 */
+  line-height: 1.25;
 }
 
 .header-title {
   color: var(--edu-text);
   font-size: 16px;
   font-weight: 800;
+  line-height: 1.3;
 }
 
 .header-subtitle {
   color: var(--edu-text-muted);
   font-size: 12px;
+  line-height: 1.3;
 }
 
 .header-right {
@@ -428,6 +474,11 @@ async function handleLogout() {
 .content-wrapper {
   max-width: 1400px;
   margin: 0 auto;
+}
+
+.license-banner {
+  margin-bottom: 16px;
+  border-radius: 10px;
 }
 
 @media (max-width: 768px) {
